@@ -109,6 +109,11 @@ export default function AppReservaYa() {
     // Actualizo estado de resultado
     setResults(filtered);
   }
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategories([]);
+    setResults(MOCK_RESTAURANTS);
+  }
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>

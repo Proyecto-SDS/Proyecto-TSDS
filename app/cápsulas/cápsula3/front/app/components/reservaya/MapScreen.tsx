@@ -89,6 +89,7 @@ export function MapScreen({
   searchTerm,
   onSearchChange,
   searchResults,
+  
 }: {
   selectedRestaurant: number | null;
   onSelectRestaurant: (id: number | null) => void;
@@ -103,9 +104,7 @@ export function MapScreen({
   onToggleFavorite: (id: number) => void;
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  
   searchResults: Restaurant[];
- 
 }) {
   console.log("searchResults en MapScreen:", searchResults);
   const [selectedCategory, setSelectedCategory] =
@@ -147,11 +146,37 @@ export function MapScreen({
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <Input
             placeholder="Buscar restaurantes, cafeterías..."
-            className="pl-12 h-12 bg-white border-0 rounded-xl shadow-md"
+            className="pl-12 pr-10 h-12 bg-white border-0 rounded-xl shadow-md"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
           />
+        {/* Boton X para limpiar texto */}
+        {searchTerm && (
+          <button
+          type="button"
+          onClick={() => onSearchChange("")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
+          >
+            X
+          </button>
+        )}
         </div>
+        {/* Boton Limpiar Filtros */}
+        <div className="mt-2 flex justify-end">
+          <button
+          type="button"
+          onClick={() =>{
+            setSelectedCategory("Todos");
+          }}
+          className="px-3 py-1.5 rounded-full text-xs font-medium
+               bg-white/90 text-orange-600 border border-orange-300
+               hover:bg-white hover:border-orange-400 transition-colors"
+          >
+            Limpiar Filtros
+          </button>
+          </div>
+        
+
 
         {/* Category Filters */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
