@@ -15,16 +15,9 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { UserMenu } from "./UserMenu";
 import { useState } from "react";
+import { Restaurant } from "./ui/restaurantTypes";
 
-interface Restaurant {
-  id: number;
-  name: string;
-  type: string;
-  rating: number;
-  hours: string;
-  distance: string;
-  position: { top: string; left: string };
-}
+
 
 const restaurants: Restaurant[] = [
   {
@@ -34,6 +27,7 @@ const restaurants: Restaurant[] = [
     rating: 4.8,
     hours: "11:00 AM - 10:00 PM",
     distance: "0.5 km",
+    address: "Av. Principal 123, Centro",
     position: { top: "45%", left: "48%" },
   },
   {
@@ -43,6 +37,7 @@ const restaurants: Restaurant[] = [
     rating: 4.6,
     hours: "12:00 PM - 11:00 PM",
     distance: "1.2 km",
+    address: "Av. Principal 123, Centro",
     position: { top: "32%", left: "62%" },
   },
   {
@@ -52,6 +47,7 @@ const restaurants: Restaurant[] = [
     rating: 4.9,
     hours: "8:00 AM - 8:00 PM",
     distance: "0.8 km",
+    address: "Av. Principal 123, Centro",
     position: { top: "58%", left: "38%" },
   },
   {
@@ -61,6 +57,7 @@ const restaurants: Restaurant[] = [
     rating: 4.7,
     hours: "12:00 PM - 10:00 PM",
     distance: "0.6 km",
+    address: "Av. Principal 123, Centro",
     position: { top: "25%", left: "45%" },
   },
   {
@@ -70,6 +67,7 @@ const restaurants: Restaurant[] = [
     rating: 4.8,
     hours: "7:00 AM - 9:00 PM",
     distance: "0.9 km",
+    address: "Av. Principal 123, Centro",
     position: { top: "65%", left: "55%" },
   },
 ];
@@ -88,6 +86,9 @@ export function MapScreen({
   isLoggedIn,
   favorites,
   onToggleFavorite,
+  searchTerm,
+  onSearchChange,
+  searchResults,
 }: {
   selectedRestaurant: number | null;
   onSelectRestaurant: (id: number | null) => void;
@@ -100,17 +101,23 @@ export function MapScreen({
   isLoggedIn: boolean;
   favorites: number[];
   onToggleFavorite: (id: number) => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  
+  searchResults: Restaurant[];
+ 
 }) {
+  console.log("searchResults en MapScreen:", searchResults);
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("Todos");
 
-  const selected = restaurants.find((r) => r.id === selectedRestaurant);
+  const selected = searchResults.find((r) => r.id === selectedRestaurant);
 
   // Filtrar restaurantes según la categoría seleccionada
   const filteredRestaurants =
     selectedCategory === "Todos"
-      ? restaurants
-      : restaurants.filter((r) => r.type === selectedCategory);
+      ? searchResults
+      : searchResults.filter((r) => r.type === selectedCategory);
 
   const categoryFilters: { label: CategoryFilter; icon: React.ReactNode }[] = [
     { label: "Todos", icon: <UtensilsCrossed className="h-5 w-5" /> },
@@ -141,6 +148,8 @@ export function MapScreen({
           <Input
             placeholder="Buscar restaurantes, cafeterías..."
             className="pl-12 h-12 bg-white border-0 rounded-xl shadow-md"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
@@ -228,8 +237,10 @@ export function MapScreen({
         </svg>
 
         {/* Restaurant Pins */}
-        {filteredRestaurants.map((restaurant) => (
-          <button
+        {searchResults.map((restaurant) => {
+          if (!restaurant.position) return null;
+          return (
+          <div
             key={restaurant.id}
             onClick={() =>
               onSelectRestaurant(
@@ -237,7 +248,10 @@ export function MapScreen({
               )
             }
             className="absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110"
-            style={restaurant.position}
+            style={{
+              top: restaurant.position.top,
+              left: restaurant.position.left,
+            }}
           >
             <div
               className={`relative ${
@@ -253,8 +267,9 @@ export function MapScreen({
               />
               <UtensilsCrossed className="absolute top-2 left-1/2 -translate-x-1/2 h-5 w-5 text-white" />
             </div>
-          </button>
-        ))}
+          </div>
+          );
+        })}
 
         {/* User Location */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
