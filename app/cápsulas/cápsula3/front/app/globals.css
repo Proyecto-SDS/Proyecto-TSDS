@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* =======================================
+   FUENTES & RESET
+======================================= */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff8e9;
+  color: #232323;
+}
+
+/* Quita scrollbars feos */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 12px;
+}
+
+/* =======================================
+   VARIABLES FIGMA
+======================================= */
+:root {
+  --radius: 20px;
+  --shadow-soft: 0px 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0px 3px 10px rgba(0, 0, 0, 0.1);
+
+  /* Colores principales */
+  --orange-start: #ff7a00;
+  --orange-end: #ff3d3d;
+
+  --light-bg: #fff8e9;
+
+  /* Tarjeta */
+  --card-border: #f8c27a;
+
+  /* Mapa */
+  --map-bg: #d8fce9;
+  --map-grid: rgba(0, 0, 0, 0.07);
+
+  /* Texto */
+  --text-dark: #232323;
+  --text-muted: #505050;
+}
+
+/* =======================================
+   GRADIENTES
+======================================= */
+.bg-gradient-main {
+  background: linear-gradient(90deg, var(--orange-start), var(--orange-end));
+}
+
+.bg-gradient-header {
+  background: linear-gradient(90deg, #ff7a00, #ff3d3d);
+}
+
+.bg-gradient-fade {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 248, 233, 1) 80%
+  );
+}
+
+/* =======================================
+   TARJETAS
+======================================= */
+.card-soft {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  background: white;
+}
+
+.card-border {
+  border: 1px solid var(--card-border);
+  border-radius: calc(var(--radius) + 4px);
+}
+
+/* =======================================
+   BOTONES CUSTOM
+======================================= */
+.btn-main {
+  background: linear-gradient(90deg, #ff7a00, #ff3d3d);
+  color: white;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+/* =======================================
+   MAPA (placeholder o Mapbox)
+======================================= */
+.mapa-container {
+  width: 100%;
+  height: 430px;
+  border-radius: calc(var(--radius) + 10px);
+  background: var(--map-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.mapa-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      to right,
+      var(--map-grid) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--map-grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* =======================================
+   ICONOS
+======================================= */
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* =======================================
+   FAVORITOS
+======================================= */
+.heart-btn {
+  background: transparent;
+  color: #e64761;
+  font-size: 20px;
+}
+
+/* =======================================
+   QR
+======================================= */
+.qr-container {
+  padding: 20px;
+  border-radius: var(--radius);
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+
+/* =======================================
+   BORDES FIGMA
+======================================= */
+.rounded-figma {
+  border-radius: var(--radius);
+}
