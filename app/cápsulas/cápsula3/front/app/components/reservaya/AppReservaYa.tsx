@@ -44,7 +44,11 @@ export default function AppReservaYa() {
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
     );
   };
-
+  const handleLogout = () => {
+    // Aquí después puedes limpiar sesión, ir al login, etc.
+    console.log("Logout clickeado");
+    // Por ejemplo: setCurrentScreen("map");
+  };
   const saveReservation = () => {
     if (currentReservationData) {
       const newReservation: Reservation = {
@@ -92,13 +96,7 @@ export default function AppReservaYa() {
             onViewDetails={() => setCurrentScreen("details")}
             onViewFavorites={() => setCurrentScreen("favorites")}
             onViewReservations={() => setCurrentScreen("reservations")}
-            onLogin={() => setCurrentScreen("login")}
-            onRegister={() => setCurrentScreen("register")}
-            onLogout={() => {
-              setIsLoggedIn(false);
-              setCurrentScreen("map");
-            }}
-            isLoggedIn={isLoggedIn}
+            onLogout={handleLogout}
             favorites={favorites}
             onToggleFavorite={toggleFavorite}
           />
