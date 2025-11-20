@@ -87,34 +87,62 @@ export default function AppReservaYa() {
   const [results, setResults] = useState<Restaurant[]>(MOCK_RESTAURANTS);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  function applyFilters(termFromInput: string){
-    let filtered = MOCK_RESTAURANTS;
-    const cleanedTerm = termFromInput.toLowerCase().trim();
-    // Filtro por texto
-    if (cleanedTerm !== ""){
-        filtered = filtered.filter((restaurant) => {
-          const nameMatch = restaurant.name.toLowerCase().includes(cleanedTerm);
-          const typeMatch = restaurant.type.toLowerCase().includes(cleanedTerm);
-          const addressMatch = restaurant.address.toLowerCase().includes(cleanedTerm);
-          return nameMatch || typeMatch || addressMatch;
-        });
-    }
-    // Filtro por categorias
-    if (selectedCategories.length > 0){
-      filtered = filtered.filter((restaurant) =>
-        selectedCategories.includes(restaurant.type)
-      )
-    };
-    console.log("FILTRADO:", filtered);
-    // Actualizo estado de resultado
-    setResults(filtered);
-  }
-  const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedCategories([]);
-    setResults(MOCK_RESTAURANTS);
-  }
+  async function applyFilters(termFromInput: string) {
+    try {
+      setIsLoading(true);
+      setError(null);
 
+      const params = new URLSearchParams();
+
+      const cleanedTerm = termFromInput.trim();
+      if (cleanedTerm !== "") {
+        // el backend usa 'q' para nombre/comuna
+        params.set("q", cleanedTerm);
+      }
+
+      // Filtrar también por categoría con el back:
+      if (selectedCategories.length > 0) {
+        params.set("categoria", selectedCategories[0]);
+      }
+
+      const response = await fetch(
+        `/api/locales/buscar?${params.toString()}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Adaptamos lo que viene del back al tipo Restaurant del front
+      const adapted: Restaurant[] = data.map((local: any) => ({
+        id: local.id,
+        name: local.nombre,
+        type: selectedCategories[0] || "Restaurante", 
+        address: local.comuna,
+        rating: 4.5,          
+        distance: "0.5 km",   
+        priceRange: "$$",     
+        isOpen: true,         
+        position: {
+          top: "50%",         
+          left: "50%",
+        },
+      }));
+
+      setResults(adapted);
+    } catch (e) {
+      console.error("Error al obtener locales", e);
+      setError("No se pudieron cargar los locales. Intenta nuevamente.");
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
