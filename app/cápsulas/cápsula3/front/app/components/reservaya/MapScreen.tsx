@@ -20,9 +20,29 @@ import { useEffect, useState, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Imports de API (TUYO)
-import { getRestaurants } from "@/lib/api/client";
-// Asegúrate de que este tipo coincida con lo que devuelve tu cliente
-import type { Restaurant as ApiRestaurant } from "@/lib/api/types";
+// Eliminado client.ts. Usamos fetch directo a Flask backend
+
+type RestaurantType = "Restaurante" | "Restobar" | "Cafetería";
+interface ApiRestaurant {
+  id: number;
+  nombre?: string;
+  name?: string;
+  tipo?: string;
+  type?: string;
+  latitud?: number;
+  lat?: number;
+  longitud?: number;
+  lng?: number;
+  rating?: number | string;
+  direccion?: string;
+  address?: string;
+  hora_apertura?: string;
+  open_time?: string;
+  hora_cierre?: string;
+  close_time?: string;
+  distancia_km?: number | string;
+  distance_km?: number | string;
+}
 
 // Definimos la interfaz localmente o la importamos
 interface MapRestaurant {
@@ -159,21 +179,47 @@ export function MapScreen({
         }
 
         // LLAMADA AL BACKEND REAL
-        const data: ApiRestaurant[] = await getRestaurants(params);
+        // --- FETCH DIRECTO AL BACKEND ---
+        let endpoint = "/api/locales";
+        const query = new URLSearchParams();
+        if (search) {
+          endpoint = "/api/search";
+          query.set("q", search);
+        }
+        if (selectedCategory !== "all") query.set("tipo", selectedCategory);
+        if (userLocation) {
+          query.set("lat", String(userLocation.lat));
+          query.set("lng", String(userLocation.lng));
+        }
+        const qs = query.toString();
+        const url = qs ? `${endpoint}?${qs}` : endpoint;
+        let data: ApiRestaurant[] = [];
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`API error ${res.status}`);
+          data = await res.json();
+        } catch (err) {
+          console.error("Error en fetch:", err);
+          data = [];
+        }
 
         // Adaptamos los datos para el mapa
         const adapted: MapRestaurant[] = data.map((r) => ({
           id: r.id,
-          name: r.name,
-          type: r.type,
-          rating: r.rating,
-          hours: `${r.openTime} - ${r.closeTime}`,
-          // Distancia que viene del backend
+          name: r.nombre || r.name || "Sin Nombre",
+          type: r.tipo || r.type || "Restaurante",
+          rating: parseFloat(String(r.rating ?? "4.5")),
+          hours: `${r.hora_apertura || r.open_time || "09:00"} - ${r.hora_cierre || r.close_time || "22:00"}`,
           distance:
-            typeof r.distanceKm === "number"
-              ? `${r.distanceKm.toFixed(1)} km`
+            typeof r.distancia_km === "number"
+              ? `${r.distancia_km.toFixed(1)} km`
+              : typeof r.distance_km === "number"
+              ? `${r.distance_km.toFixed(1)} km`
               : "—",
-          coordinates: [r.lng, r.lat],
+          coordinates: [
+            parseFloat(String(r.longitud ?? r.lng ?? "-70.6551")),
+            parseFloat(String(r.latitud ?? r.lat ?? "-33.1836")),
+          ],
         }));
 
         setRestaurants(adapted);
