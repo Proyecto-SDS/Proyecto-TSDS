@@ -107,6 +107,7 @@ class Local(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_direccion = db.Column(db.Integer, db.ForeignKey('direccion.id'), nullable=False)
     nombre = db.Column(db.String(200))
+    tipo = db.Column(db.String(50))  # Restaurante, Restobar, Cafetería
     telefono = db.Column(db.Integer)  # Considerar cambiar a VARCHAR
     correo = db.Column(db.String(50))
     

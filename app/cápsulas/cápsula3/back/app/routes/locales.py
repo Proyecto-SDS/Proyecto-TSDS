@@ -51,8 +51,12 @@ def get_locales():
         {
             'id': local.id,
             'nombre': local.nombre,
+            'tipo': getattr(local, 'tipo', None),
             'telefono': local.telefono,
             'correo': local.correo,
+            'lat': float(local.direccion.latitud) if local.direccion.latitud else None,
+            'lng': float(local.direccion.longitud) if local.direccion.longitud else None,
+            'comuna': local.direccion.comuna.nombre,
             'direccion': {
                 'id': local.direccion.id,
                 'numero': local.direccion.numero,
@@ -168,8 +172,11 @@ def buscar_locales():
         {
             'id': local.id,
             'nombre': local.nombre,
+            'tipo': getattr(local, 'tipo', None),
             'telefono': local.telefono,
             'correo': local.correo,
+            'lat': float(local.direccion.latitud) if local.direccion.latitud else None,
+            'lng': float(local.direccion.longitud) if local.direccion.longitud else None,
             'comuna': local.direccion.comuna.nombre,
             'coordenadas': {
                 'lat': float(local.direccion.latitud) if local.direccion.latitud else None,

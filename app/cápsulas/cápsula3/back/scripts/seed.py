@@ -8,11 +8,23 @@ import os
 # Agregar el directorio padre al path para poder importar desde app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import create_app, db
-from app.models import (
-    Rol, Comuna, Categoria, TipoFoto, Direccion, Usuario, Local, 
-    Horario, Producto, Mesa, Redes, Foto
-)
+import importlib
+app_module = importlib.import_module('app')
+create_app = getattr(app_module, 'create_app')
+db = getattr(app_module, 'db')
+models_module = importlib.import_module('app.models')
+Rol = getattr(models_module, 'Rol')
+Comuna = getattr(models_module, 'Comuna')
+Categoria = getattr(models_module, 'Categoria')
+TipoFoto = getattr(models_module, 'TipoFoto')
+Direccion = getattr(models_module, 'Direccion')
+Usuario = getattr(models_module, 'Usuario')
+Local = getattr(models_module, 'Local')
+Horario = getattr(models_module, 'Horario')
+Producto = getattr(models_module, 'Producto')
+Mesa = getattr(models_module, 'Mesa')
+Redes = getattr(models_module, 'Redes')
+Foto = getattr(models_module, 'Foto')
 from datetime import time
 
 def seed_database():
@@ -302,6 +314,7 @@ def seed_database():
             local = Local(
                 id_direccion=direccion.id,
                 nombre=rest_data['nombre'],
+                tipo=rest_data.get('tipo'),
                 telefono=rest_data['telefono'],
                 correo=rest_data['correo']
             )
