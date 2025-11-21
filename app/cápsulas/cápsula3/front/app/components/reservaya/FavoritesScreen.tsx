@@ -4,16 +4,8 @@ import { ArrowLeft, Star, Clock, MapPin, Heart } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Restaurant } from "./ui/restaurantTypes";
 
-interface FavoriteRestaurant {
-  id: number;
-  name: string;
-  type: string;
-  rating: number;
-  hours: string;
-  distance: string;
-  address: string;
-}
 
 interface FavoritesScreenProps {
   onBack: () => void;
@@ -29,25 +21,33 @@ export function FavoritesScreen({
   onToggleFavorite,
 }: FavoritesScreenProps) {
   // Base de datos de todos los restaurantes
-  const allRestaurants: FavoriteRestaurant[] = [
+  const allRestaurants: Restaurant[] = [
     {
       id: 1,
-      name: "King Halo",
-      type: "Restaurante",
-      rating: 4.8,
-      hours: "11:00 AM - 10:00 PM",
-      distance: "0.5 km",
-      address: "Av. Principal 123, Centro",
+    name: "King Halo",
+    type: "Restaurante",
+    rating: 4.8,
+    hours: "11:00 AM - 10:00 PM",
+    distance: "0.5 km",
+    address: "Av. Principal 123, Centro",
+    position: {
+      top: "40%",
+      left: "30%",
     },
-    {
-      id: 2,
-      name: "La Paella Real",
-      type: "Restobar",
-      rating: 4.6,
-      hours: "12:00 PM - 11:00 PM",
-      distance: "1.2 km",
-      address: "Calle España 456, Miraflores",
+  },
+  {
+    id: 2,
+    name: "La Paella Real",
+    type: "Restobar",
+    rating: 4.6,
+    hours: "12:00 PM - 11:00 PM",
+    distance: "1.2 km",
+    address: "Calle España 456, Miraflores",
+    position: {
+      top: "55%",
+      left: "25%",
     },
+  },
     {
       id: 3,
       name: "Café del Mar",
@@ -56,6 +56,10 @@ export function FavoritesScreen({
       hours: "8:00 AM - 8:00 PM",
       distance: "0.8 km",
       address: "Malecón Costa Verde 789, Barranco",
+      position: {
+      top: "4%",
+      left: "20%",
+    },
     },
     {
       id: 4,
@@ -65,6 +69,10 @@ export function FavoritesScreen({
       hours: "12:00 PM - 10:00 PM",
       distance: "0.6 km",
       address: "Jr. Ancash 234, Centro Histórico",
+      position: {
+      top: "66%",
+      left: "12%",
+    },
     },
     {
       id: 5,
@@ -74,6 +82,10 @@ export function FavoritesScreen({
       hours: "7:00 AM - 9:00 PM",
       distance: "0.9 km",
       address: "Av. Arequipa 567, San Isidro",
+      position: {
+      top: "12%",
+      left: "14%",
+    },
     },
   ];
 

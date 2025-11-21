@@ -14,13 +14,17 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { UserMenu } from "./UserMenu";
 
+// Imports de Mapbox (TUYO)
 import Map, { Marker, Popup, MapRef } from "react-map-gl";
 import { useEffect, useState, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+// Imports de API (TUYO)
 import { getRestaurants } from "@/lib/api/client";
+// Asegúrate de que este tipo coincida con lo que devuelve tu cliente
 import type { Restaurant as ApiRestaurant } from "@/lib/api/types";
 
+// Definimos la interfaz localmente o la importamos
 interface MapRestaurant {
   id: number;
   name: string;
@@ -30,37 +34,6 @@ interface MapRestaurant {
   distance: string;
   coordinates: [number, number]; // [lng, lat]
 }
-
-// Datos de ejemplo mientras el backend no está listo
-const mockRestaurants: MapRestaurant[] = [
-  {
-    id: 1,
-    name: "King Halo",
-    type: "Restaurante",
-    rating: 4.8,
-    hours: "11:00 AM - 10:00 PM",
-    distance: "0.5 km",
-    coordinates: [-77.0428, -12.0464],
-  },
-  {
-    id: 2,
-    name: "La Paella Real",
-    type: "Restobar",
-    rating: 4.6,
-    hours: "12:00 PM - 11:00 PM",
-    distance: "1.2 km",
-    coordinates: [-77.0328, -12.0364],
-  },
-  {
-    id: 3,
-    name: "Café del Mar",
-    type: "Cafetería",
-    rating: 4.9,
-    hours: "8:00 AM - 8:00 PM",
-    distance: "0.8 km",
-    coordinates: [-77.0528, -12.0564],
-  },
-];
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
@@ -73,6 +46,11 @@ export function MapScreen({
   onLogout,
   favorites,
   onToggleFavorite,
+  // Estas props venían de Benja, las dejamos opcionales para no romper nada
+  // pero usaremos estado local para controlar la búsqueda real
+  searchTerm,
+  onSearchChange,
+  searchResults,
 }: {
   selectedRestaurant: number | null;
   onSelectRestaurant: (id: number | null) => void;
@@ -82,16 +60,22 @@ export function MapScreen({
   onLogout: () => void;
   favorites: number[];
   onToggleFavorite: (id: number) => void;
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
+  searchResults?: any[];
 }) {
-  const [restaurants, setRestaurants] =
-    useState<MapRestaurant[]>(mockRestaurants);
+  // --- ESTADOS (Mantenemos TU lógica para conectar con Backend) ---
+  const [restaurants, setRestaurants] = useState<MapRestaurant[]>([]);
   const [popupInfo, setPopupInfo] = useState<MapRestaurant | null>(null);
   const mapRef = useRef<MapRef>(null);
+
+  // Estado para el buscador y filtros
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     "all" | "Restaurante" | "Restobar" | "Cafetería"
   >("all");
 
+  // Estado para ubicación
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -100,6 +84,7 @@ export function MapScreen({
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // --- LÓGICA DE GEOLOCALIZACIÓN (TUYA) ---
   const handleGetLocation = () => {
     if (!("geolocation" in navigator)) {
       setLocationError("Tu navegador no soporta geolocalización");
@@ -117,19 +102,14 @@ export function MapScreen({
       },
       (err) => {
         console.error(err);
-        setLocationError(
-          "No pudimos obtener tu ubicación. Revisa los permisos."
-        );
+        setLocationError("No pudimos obtener tu ubicación.");
         setIsLocating(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-      }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  // Efecto para obtener ubicación automática al cargar la página
+  // Obtener ubicación al inicio
   useEffect(() => {
     if ("geolocation" in navigator) {
       setIsLocating(true);
@@ -141,62 +121,54 @@ export function MapScreen({
           });
           setIsLocating(false);
         },
-        (err) => {
-          console.log(
-            "Ubicación automática falló o denegada (silencioso)",
-            err
-          );
-          setIsLocating(false);
-        },
+        (err) => setIsLocating(false),
         { enableHighAccuracy: true, timeout: 5000 }
       );
     }
   }, []);
 
-  // 👇 NUEVO EFECTO: Mover la cámara cuando tengamos ubicación
+  // Volar a la ubicación del usuario
   useEffect(() => {
     if (userLocation && mapRef.current) {
       mapRef.current.flyTo({
         center: [userLocation.lng, userLocation.lat],
         zoom: 14,
-        duration: 2000, // Animación suave de 2 segundos
+        duration: 2000,
       });
     }
   }, [userLocation]);
 
-  // 🔌 Cargar restaurantes desde el backend (AHORA REAL)
+  // --- LÓGICA DE CARGA DE DATOS (UNIFICADA) ---
+  // Aquí unimos tu backend con el buscador de Benja
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
 
-        // 1. Preparamos los parámetros para enviar a TU nueva API
+        // Preparamos parámetros para el Backend Real
         const params: any = {};
 
-        // Si hay texto en el buscador
+        // Usamos el estado 'search' local
         if (search) params.search = search;
-
-        // Si hay categoría seleccionada (y no es "all")
         if (selectedCategory !== "all") params.category = selectedCategory;
 
-        // Si tenemos ubicación, la enviamos para que calcule la distancia real
+        // Enviamos ubicación para calcular distancia
         if (userLocation) {
           params.lat = userLocation.lat;
           params.lng = userLocation.lng;
         }
 
-        // 2. Llamada REAL al endpoint que acabamos de crear
-        // (Esto hará un fetch a /api/restaurants con tus filtros)
+        // LLAMADA AL BACKEND REAL
         const data: ApiRestaurant[] = await getRestaurants(params);
 
-        // 3. Adaptamos los datos para el mapa
+        // Adaptamos los datos para el mapa
         const adapted: MapRestaurant[] = data.map((r) => ({
           id: r.id,
           name: r.name,
           type: r.type,
           rating: r.rating,
           hours: `${r.openTime} - ${r.closeTime}`,
-          // Aquí ya viene la distancia calculada por tu backend
+          // Distancia que viene del backend
           distance:
             typeof r.distanceKm === "number"
               ? `${r.distanceKm.toFixed(1)} km`
@@ -204,32 +176,18 @@ export function MapScreen({
           coordinates: [r.lng, r.lat],
         }));
 
-        if (adapted.length > 0) {
-          setRestaurants(adapted);
-        } else {
-          // Opcional: Si la búsqueda no trae nada, vaciamos la lista
-          setRestaurants([]);
-        }
+        setRestaurants(adapted);
       } catch (err) {
         console.error("Error cargando restaurantes:", err);
-        // Ya no usamos mock, queremos ver si falla la API real
       } finally {
         setLoading(false);
       }
     }
 
     load();
-    // OJO: Agregamos estas dependencias para que se recargue al cambiar algo
-  }, [search, selectedCategory, userLocation]);
+  }, [search, selectedCategory, userLocation]); // Se recarga si cambia búsqueda, categoría o ubicación
 
-  const filteredRestaurants = restaurants.filter((r) => {
-    const matchesSearch = r.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || r.type === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
+  // Encontramos el restaurante seleccionado de la lista actual
   const selected = restaurants.find((r) => r.id === selectedRestaurant) || null;
 
   return (
@@ -248,27 +206,50 @@ export function MapScreen({
           />
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (Estilo de Benja, Lógica Tuya) */}
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <Input
             placeholder="Buscar restaurantes, cafeterías..."
-            className="pl-12 h-12 bg-white border-0 rounded-xl shadow-md"
+            className="pl-12 pr-10 h-12 bg-white border-0 rounded-xl shadow-md"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {/* Botón X para limpiar (De Benja) */}
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
+            >
+              X
+            </button>
+          )}
         </div>
       </div>
-      {/* Filtros y ubicación */}
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        {/* Botón ubicación */}
-        <button
-          onClick={handleGetLocation}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 text-slate-700 text-sm shadow-md hover:bg-orange-50"
-        >
-          <MapPin className="h-4 w-4 text-orange-500" />
-          {isLocating ? "Obteniendo ubicación..." : "Obtener mi ubicación"}
-        </button>
+
+      {/* Filtros y Herramientas */}
+      <div className="mt-4 px-4 flex flex-col gap-3">
+        {/* Fila superior: Botón ubicación y Limpiar Filtros */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handleGetLocation}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 text-slate-700 text-sm shadow-md hover:bg-orange-50"
+          >
+            <MapPin className="h-4 w-4 text-orange-500" />
+            {isLocating ? "..." : "Mi ubicación"}
+          </button>
+
+          {selectedCategory !== "all" && (
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("all")}
+              className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/90 text-orange-600 border border-orange-300 hover:bg-white transition-colors"
+            >
+              Limpiar Filtros
+            </button>
+          )}
+        </div>
 
         {/* Chips de categoría */}
         <div className="flex flex-wrap gap-2">
@@ -294,23 +275,23 @@ export function MapScreen({
       </div>
 
       {locationError && (
-        <p className="mt-2 text-xs text-red-100">{locationError}</p>
+        <p className="px-4 mt-2 text-xs text-red-500">{locationError}</p>
       )}
 
-      {/* Map Area */}
-      <div className="relative h-[calc(100vh-180px)]">
+      {/* Map Area (TUYO - Usando Mapbox Real) */}
+      <div className="relative h-[calc(100vh-220px)] mt-4">
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
           initialViewState={{
-            longitude: filteredRestaurants[0]?.coordinates[0] ?? -77.0428,
-            latitude: filteredRestaurants[0]?.coordinates[1] ?? -12.0464,
+            longitude: -77.0428, // Default Lima
+            latitude: -12.0464,
             zoom: 13,
           }}
           style={{ width: "100%", height: "100%" }}
           mapStyle="mapbox://styles/mapbox/streets-v12"
         >
-          {filteredRestaurants.map((restaurant) => (
+          {restaurants.map((restaurant) => (
             <Marker
               key={restaurant.id}
               longitude={restaurant.coordinates[0]}
@@ -343,7 +324,8 @@ export function MapScreen({
               </button>
             </Marker>
           ))}
-          {/* Marcador de ubicación del usuario */}
+
+          {/* Tu marcador de ubicación */}
           {userLocation && (
             <Marker
               longitude={userLocation.lng}
@@ -355,19 +337,6 @@ export function MapScreen({
                 <span className="relative inline-flex rounded-full h-6 w-6 bg-blue-500 border-2 border-white shadow-lg"></span>
               </span>
             </Marker>
-          )}
-
-          {popupInfo && (
-            <Popup
-              longitude={popupInfo.coordinates[0]}
-              latitude={popupInfo.coordinates[1]}
-              anchor="top"
-              onClose={() => setPopupInfo(null)}
-              closeButton={false}
-              className="restaurant-popup"
-            >
-              {/* ... */}
-            </Popup>
           )}
 
           {popupInfo && (
@@ -391,9 +360,9 @@ export function MapScreen({
           )}
         </Map>
 
-        {/* Info Card */}
+        {/* Info Card del Restaurante Seleccionado */}
         {selected && (
-          <div className="absolute bottom-6 left-6 right-6 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="absolute bottom-6 left-6 right-6 animate-in slide-in-from-bottom-4 duration-300 z-10">
             <Card className="bg-white border-4 border-orange-200 shadow-2xl rounded-2xl overflow-hidden">
               <div className="p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -409,20 +378,7 @@ export function MapScreen({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onToggleFavorite(selected.id)}
-                      className={`p-2 rounded-full transition-all ${
-                        favorites.includes(selected.id)
-                          ? "text-red-500 hover:bg-red-50"
-                          : "text-slate-400 hover:text-red-500 hover:bg-red-50"
-                      }`}
-                    >
-                      <Heart
-                        className={`h-6 w-6 ${
-                          favorites.includes(selected.id) ? "fill-red-500" : ""
-                        }`}
-                      />
-                    </button>
+                    {/* Botón cerrar selección */}
                     <button
                       onClick={() => onSelectRestaurant(null)}
                       className="text-slate-400 hover:text-slate-600 p-1"
@@ -460,8 +416,8 @@ export function MapScreen({
         <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
         <span className="text-slate-600">
           {loading
-            ? "Cargando restaurantes..."
-            : `${filteredRestaurants.length} restaurantes cerca de ti`}
+            ? "Buscando locales..."
+            : `${restaurants.length} locales encontrados`}
         </span>
       </div>
     </div>
