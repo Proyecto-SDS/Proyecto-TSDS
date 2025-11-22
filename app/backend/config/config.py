@@ -8,7 +8,6 @@ class Configuracion(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
     POSTGRES_DB: str
-    POSTGRES_TEST_DB: str
 
     @property
     def DATABASE_URL(self) -> str:
