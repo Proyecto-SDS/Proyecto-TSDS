@@ -21,7 +21,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           # Tus datos exactos (Ya los tengo de tus logs anteriores)
-          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider1'
           service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
       # 2. Si entramos, preguntamos "quién soy" para confirmar
