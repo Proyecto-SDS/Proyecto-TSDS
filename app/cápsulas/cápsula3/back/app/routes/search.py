@@ -5,7 +5,8 @@ Endpoints auxiliares para comunas, categorías, etc.
 
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Comuna, Categoria, Rol, TipoFoto
+from app.models import Comuna, Categoria, Rol, TipoFoto, Local, Direccion, Producto
+from sqlalchemy import func, or_, and_
 
 search_bp = Blueprint('search', __name__, url_prefix='/api')
 
@@ -142,3 +143,127 @@ def health_check():
         'status': 'ok',
         'message': 'API ReservaYa funcionando correctamente'
     }), 200
+
+
+# ==================== LOCALES (BÚSQUEDA Y GEO) ====================
+
+
+@search_bp.route('/locales', methods=['GET'])
+def listar_locales():
+    """Listar locales con filtros combinados y búsqueda por geolocalización.
+
+    Query params:
+    - lat, lng: coordenadas del usuario (float)
+    - radio: en kilómetros (float), por defecto 5
+    - categoria: id de categoría (int)
+    - nombre: texto parcial a buscar en el nombre del local (string)
+    - op: 'and' ó 'or' para combinar filtros (default 'and')
+    - page, per_page: paginación
+    """
+    # Parámetros básicos
+    try:
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+    except ValueError:
+        return jsonify({'error': 'lat y lng deben ser números válidos'}), 400
+
+    radio = request.args.get('radio', default=5.0, type=float)
+    categoria = request.args.get('categoria', type=int)
+    nombre = request.args.get('nombre', type=str)
+    op = (request.args.get('op') or 'and').lower()
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=20, type=int)
+
+    # Validaciones básicas de coordenadas
+    if (lat is not None and (lat < -90 or lat > 90)) or (lng is not None and (lng < -180 or lng > 180)):
+        return jsonify({'error': 'Coordenadas fuera de rango'}), 400
+
+    # Construir expresión de distancia usando PostGIS (geography) si hay coordenadas
+    distancia_expr = None
+    user_geom = None
+    if lat is not None and lng is not None:
+        # user_geom en WKT (lon lat) y convertir a geography
+        user_wkt = f'SRID=4326;POINT({lng} {lat})'
+        user_geom = func.ST_GeogFromText(user_wkt)
+        # distancia en kilómetros
+        distancia_expr = (func.ST_Distance(Direccion.geom, user_geom) / 1000.0)
+
+    # Base de la consulta: Local join Direccion
+    query = db.session.query(Local, Direccion)
+    query = query.join(Direccion, Local.id_direccion == Direccion.id)
+
+    # Joins adicionales si se filtra por categoría
+    if categoria:
+        query = query.join(Producto, Producto.id_local == Local.id)
+
+    # Construir condiciones según filtros
+    conditions = []
+    if nombre:
+        conditions.append(Local.nombre.ilike(f"%{nombre}%"))
+
+    if categoria:
+        conditions.append(Producto.id_categoria == categoria)
+
+    if distancia_expr is not None:
+        # añadir campo distancia a la query para orden y filtro
+        query = query.add_columns(distancia_expr.label('distancia_km'))
+        # ST_DWithin espera metros para geography, por eso multiplicamos radio * 1000
+        conditions.append(func.ST_DWithin(Direccion.geom, user_geom, radio * 1000))
+
+    # Combinar condiciones con AND/OR
+    if conditions:
+        if op == 'or':
+            query = query.filter(or_(*conditions))
+        else:
+            query = query.filter(and_(*conditions))
+
+    # Evitar duplicados al haber joins (por ejemplo productos)
+    query = query.group_by(Local.id, Direccion.id)
+
+    # Ordenar: si hay distancia, ordenar por cercanía, sino por nombre
+    if distancia_expr is not None:
+        query = query.order_by(distancia_expr)
+    else:
+        query = query.order_by(Local.nombre)
+
+    # Paginación
+    total = query.count()
+    items = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    # Formatear resultados
+    results = []
+    for row in items:
+        # row puede ser (Local, Direccion) o (Local, Direccion, distancia)
+        if len(row) == 3:
+            local_obj, direccion_obj, distancia_km = row
+            distancia_val = float(distancia_km) if distancia_km is not None else None
+        else:
+            local_obj, direccion_obj = row
+            distancia_val = None
+
+        comuna_nombre = None
+        if direccion_obj and direccion_obj.id_comuna:
+            comuna = Comuna.query.get(direccion_obj.id_comuna)
+            comuna_nombre = comuna.nombre if comuna else None
+
+        results.append({
+            'id': local_obj.id,
+            'nombre': local_obj.nombre,
+            'correo': local_obj.correo,
+            'telefono': str(local_obj.telefono) if local_obj.telefono is not None else None,
+            'distancia_km': round(distancia_val, 3) if distancia_val is not None else None,
+            'direccion': {
+                'id': direccion_obj.id,
+                'latitud': float(direccion_obj.latitud) if direccion_obj.latitud is not None else None,
+                'longitud': float(direccion_obj.longitud) if direccion_obj.longitud is not None else None,
+                'numero': direccion_obj.numero,
+                'comuna': comuna_nombre
+            }
+        })
+
+    return jsonify({
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'items': results
+    })
