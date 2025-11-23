@@ -5,9 +5,93 @@ Endpoints auxiliares para comunas, categorías, etc.
 
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Comuna, Categoria, Rol, TipoFoto
+from app.models import Comuna, Categoria, Rol, TipoFoto, Local, Direccion
+from sqlalchemy.orm import joinedload
+from math import radians, cos, sin, asin, sqrt
 
 search_bp = Blueprint('search', __name__, url_prefix='/api')
+
+
+# ==================== BÚSQUEDA DE LOCALES ====================
+
+@search_bp.route('/search', methods=['GET'])
+def search_locales():
+    """
+    Búsqueda general de locales por nombre, tipo o ubicación
+    Query params:
+    - q: término de búsqueda (busca en nombre del local)
+    - tipo: filtrar por tipo de local (Restaurante, Cafetería, Restobar)
+    - lat, lng: coordenadas para calcular distancia
+    """
+    q = request.args.get('q', '').strip()
+    tipo = request.args.get('tipo')
+    lat = request.args.get('lat', type=float)
+    lng = request.args.get('lng', type=float)
+    
+    # Query base con eager loading optimizado
+    query = db.session.query(Local).options(
+        joinedload(Local.direccion).joinedload(Direccion.comuna)
+    ).join(Direccion).join(Comuna)
+    
+    # Filtrar por término de búsqueda
+    if q:
+        query = query.filter(Local.nombre.ilike(f'%{q}%'))
+    
+    # Filtrar por tipo
+    if tipo:
+        query = query.filter(Local.tipo == tipo)
+    
+    # Ejecutar query
+    locales = query.distinct().all()
+    
+    # Función auxiliar para calcular distancia
+    def calcular_distancia(lat1, lon1, lat2, lon2):
+        """Calcula distancia en km usando fórmula Haversine"""
+        if not all([lat1, lon1, lat2, lon2]):
+            return None
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        km = 6371 * c
+        return round(km, 2)
+    
+    # Formatear respuesta
+    resultado = []
+    for local in locales:
+        distancia = None
+        if lat and lng and local.direccion:
+            distancia = calcular_distancia(
+                lat, lng,
+                float(local.direccion.latitud) if local.direccion.latitud else None,
+                float(local.direccion.longitud) if local.direccion.longitud else None
+            )
+        
+        resultado.append({
+            'id': local.id,
+            'nombre': local.nombre,
+            'tipo': local.tipo,
+            'telefono': local.telefono,
+            'correo': local.correo,
+            'comuna': local.direccion.comuna.nombre if local.direccion and local.direccion.comuna else None,
+            'lat': float(local.direccion.latitud) if local.direccion and local.direccion.latitud else None,
+            'lng': float(local.direccion.longitud) if local.direccion and local.direccion.longitud else None,
+            'distancia_km': distancia,
+            'direccion': {
+                'id': local.direccion.id,
+                'comuna': local.direccion.comuna.nombre if local.direccion.comuna else None,
+                'numero': local.direccion.numero,
+                'latitud': float(local.direccion.latitud) if local.direccion.latitud else None,
+                'longitud': float(local.direccion.longitud) if local.direccion.longitud else None
+            } if local.direccion else None
+        })
+    
+    # Ordenar por distancia si hay coordenadas
+    if lat and lng:
+        resultado.sort(key=lambda x: x['distancia_km'] if x['distancia_km'] is not None else float('inf'))
+    
+    return jsonify(resultado)
 
 
 # ==================== COMUNAS ====================

@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request
 from app import db
 from app.models import Local, Direccion, Comuna, Horario, Mesa, Producto, Categoria
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload
 
 locales_bp = Blueprint('locales', __name__, url_prefix='/api/locales')
 
@@ -27,14 +28,14 @@ def get_locales():
     nombre = request.args.get('nombre')
     capacidad_min = request.args.get('capacidad_min', type=int)
     
-    # Query base
-    query = Local.query.join(Direccion).join(Comuna)
+    # Query base con eager loading para evitar N+1
+    query = Local.query.options(
+        joinedload(Local.direccion).joinedload(Direccion.comuna)
+    ).join(Direccion).join(Comuna)
     
     # Aplicar filtros
     if tipo:
-        # Aquí necesitarías agregar el campo 'tipo' en el modelo Local
-        # o buscarlo en la tabla tipo_local
-        pass
+        query = query.filter(Local.tipo == tipo)
     
     if comuna:
         query = query.filter(Comuna.nombre.ilike(f'%{comuna}%'))
@@ -72,7 +73,13 @@ def get_locales():
 @locales_bp.route('/<int:local_id>', methods=['GET'])
 def get_local_detalle(local_id):
     """Obtener información completa de un local específico"""
-    local = Local.query.get_or_404(local_id)
+    # Eager loading para evitar múltiples queries
+    local = Local.query.options(
+        joinedload(Local.direccion).joinedload(Direccion.comuna),
+        joinedload(Local.horarios),
+        joinedload(Local.mesas),
+        joinedload(Local.productos).joinedload(Producto.categoria)
+    ).get_or_404(local_id)
     
     return jsonify({
         'id': local.id,
@@ -138,7 +145,10 @@ def buscar_locales():
     lng = request.args.get('lng', type=float)
     radio = request.args.get('radio', type=float, default=5.0)
     
-    query = Local.query.join(Direccion).join(Comuna)
+    # Eager loading optimizado
+    query = Local.query.options(
+        joinedload(Local.direccion).joinedload(Direccion.comuna)
+    ).join(Direccion).join(Comuna)
     
     # Búsqueda general
     if q:

@@ -180,6 +180,7 @@ export function MapScreen({
 
         // LLAMADA AL BACKEND REAL
         // --- FETCH DIRECTO AL BACKEND ---
+        const API_BASE = "http://localhost:5000";
         let endpoint = "/api/locales";
         const query = new URLSearchParams();
         if (search) {
@@ -192,7 +193,7 @@ export function MapScreen({
           query.set("lng", String(userLocation.lng));
         }
         const qs = query.toString();
-        const url = qs ? `${endpoint}?${qs}` : endpoint;
+        const url = qs ? `${API_BASE}${endpoint}?${qs}` : `${API_BASE}${endpoint}`;
         let data: ApiRestaurant[] = [];
         try {
           const res = await fetch(url);
@@ -270,6 +271,75 @@ export function MapScreen({
             >
               X
             </button>
+          )}
+
+          {/* Lista de resultados de búsqueda */}
+          {search && restaurants.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 max-h-96 overflow-y-auto z-50">
+              {restaurants.map((restaurant) => (
+                <button
+                  key={restaurant.id}
+                  onClick={() => {
+                    onSelectRestaurant(restaurant.id);
+                    setPopupInfo(restaurant);
+                    // Volar al restaurante en el mapa
+                    if (mapRef.current) {
+                      mapRef.current.flyTo({
+                        center: restaurant.coordinates,
+                        zoom: 15,
+                        duration: 1500,
+                      });
+                    }
+                  }}
+                  className="w-full px-4 py-3 hover:bg-orange-50 transition-colors border-b border-slate-100 last:border-b-0 text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <MapPin className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-slate-800 truncate">
+                        {restaurant.name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className="bg-orange-100 text-orange-700 border-0 text-xs">
+                          {restaurant.type}
+                        </Badge>
+                        {restaurant.distance && restaurant.distance !== "—" && (
+                          <span className="text-xs text-slate-500">
+                            {restaurant.distance}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs text-slate-600">
+                          {restaurant.rating}
+                        </span>
+                        <span className="text-xs text-slate-400 ml-2">
+                          {restaurant.hours}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Mensaje cuando no hay resultados */}
+          {search && restaurants.length === 0 && !loading && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 p-6 text-center z-50">
+              <div className="text-slate-400 mb-2">
+                <Search className="h-12 w-12 mx-auto" />
+              </div>
+              <p className="text-slate-600 font-medium">
+                No se encontraron resultados
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                Intenta con otro término de búsqueda
+              </p>
+            </div>
           )}
         </div>
       </div>
