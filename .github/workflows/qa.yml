@@ -1,41 +1,47 @@
-name: Despliegue QA (Realease)
+name: Despliegue QA (Release)
 
 on:
   push:
-    branches: [ "realease" ] # Solo funciona en develop
+    branches: [ "release" ] # CORREGIDO: "realease" suele ser un error de dedo
     paths:
       - 'front/**'
       - 'back/**'
+  workflow_dispatch: # Botón para activar manual si es necesario
 
 env:
-  # CONFIGURACIÓN FIJA PARA QA
-  ENV_NAME: 'qa'
-  GCP_PROJECT: 'tu-id-de-proyecto'
-  SERVICE_BACK: 'mi-servicio-back-qa'   # Nombre específico para QA
-  BUCKET_FRONT: 'mi-bucket-front-qa'    # Bucket específico para QA
+  # --- TUS DATOS REALES ---
+  PROJECT_ID: 'restomap-478918'
+  REGION: 'us-central1'
+  REPO_NAME: 'repo' # El nombre del repositorio en Artifact Registry
+  
+  # Nombres de los servicios en Cloud Run
+  SERVICE_BACK: 'back-qa'
+  SERVICE_FRONT: 'front-qa' # Antes era un Bucket, ahora es un Servicio
+  
+  # Tu Base de Datos
+  SQL_INSTANCE: 'restomap-478918:us-central1:restomap'
 
 jobs:
-  # --- TRABAJO 1: BACKEND QA ---
+  # ------------------------------------------------------------------
+  # TRABAJO 1: BACKEND (Python + SQL)
+  # ------------------------------------------------------------------
   deploy-back-qa:
     runs-on: ubuntu-latest
-    # Este "if" simple evita que corra si no tocaste la carpeta 'back'
-    # (Usa una función nativa de GitHub para detectar cambios)
     steps:
       - uses: actions/checkout@v4
-
-      # Detección simple: ¿Cambió la carpeta back?
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
             backend: 'back/**'
-      
-      # Solo seguimos si cambió el back
+
+      # Autenticación con el Provider que ya funciona
       - if: steps.filter.outputs.backend == 'true'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/123456/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: 'github-actions-sa@tu-id-de-proyecto.iam.gserviceaccount.com'
+          # REVISA QUE EL FINAL SEA EL PROVIDER CORRECTO (ej: github-provider-2 o 3)
+          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider-2'
+          service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
       - if: steps.filter.outputs.backend == 'true'
         uses: google-github-actions/setup-gcloud@v2
@@ -45,22 +51,29 @@ jobs:
         working-directory: ./back
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
-          # Etiqueta simple: 'qa-latest' para no llenar el registro
-          docker build -t us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest .
-          docker push us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest
           
+          # Creamos etiqueta con SHA para trazabilidad
+          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/back:${{ github.sha }}"
+          
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+          
+          # Despliegue con conexión a SQL
           gcloud run deploy ${{ env.SERVICE_BACK }} \
-            --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest \
-            --region us-central1 \
+            --image $IMAGE_TAG \
+            --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --min-instances 0 # QA se apaga si no se usa (Ahorro)
+            --min-instances 0 \
+            --add-cloudsql-instances="${{ env.SQL_INSTANCE }}" \
+            --set-env-vars="DB_HOST=/cloudsql/${{ env.SQL_INSTANCE }}"
 
-  # --- TRABAJO 2: FRONTEND QA ---
+  # ------------------------------------------------------------------
+  # TRABAJO 2: FRONTEND (Next.js en Cloud Run)
+  # ------------------------------------------------------------------
   deploy-front-qa:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -70,25 +83,34 @@ jobs:
       - if: steps.filter.outputs.frontend == 'true'
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/123456/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: 'github-actions-sa@tu-id-de-proyecto.iam.gserviceaccount.com'
+          # Debe ser el mismo provider que arriba
+          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider-2'
+          service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
       - if: steps.filter.outputs.frontend == 'true'
-        uses: actions/setup-node@v4
-        with: { node-version: '18' }
+        uses: google-github-actions/setup-gcloud@v2
 
       - if: steps.filter.outputs.frontend == 'true'
-        name: Build Front QA
+        name: Build & Deploy Front QA
         working-directory: ./front
         run: |
-          npm ci
-          # Aquí puedes poner variables fijas de QA si quieres
-          export VITE_API_URL="https://mi-servicio-back-qa-url.run.app"
-          npm run build
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          
+          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/front:${{ github.sha }}"
+          
+          # IMPORTANTE: Pasamos la URL del back al momento de construir (Build Args)
+          # Cambia esta URL cuando tengas la definitiva del backend de QA
+          BACKEND_URL="https://back-qa-pendiente.run.app"
 
-      - if: steps.filter.outputs.frontend == 'true'
-        uses: google-github-actions/upload-cloud-storage@v2
-        with:
-          path: './front/dist'
-          destination: ${{ env.BUCKET_FRONT }}
-          parent: false
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=$BACKEND_URL \
+            -t $IMAGE_TAG .
+            
+          docker push $IMAGE_TAG
+          
+          # Despliegue en Cloud Run (Ya no usamos Buckets)
+          gcloud run deploy ${{ env.SERVICE_FRONT }} \
+            --image $IMAGE_TAG \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --min-instances 0
