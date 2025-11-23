@@ -1,8 +1,8 @@
-name: Despliegue QA (Release)
+name: Despliegue QA (Develop)
 
 on:
   push:
-    branches: [ "release" ] # CORREGIDO: "realease" suele ser un error de dedo
+    branches: [ "Develop" ] # CORREGIDO: "realease" suele ser un error de dedo
     paths:
       - 'front/**'
       - 'back/**'
