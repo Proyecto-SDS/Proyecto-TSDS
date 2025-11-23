@@ -1,0 +1,94 @@
+name: Despliegue QA (Realease)
+
+on:
+  push:
+    branches: [ "realease" ] # Solo funciona en develop
+    paths:
+      - 'front/**'
+      - 'back/**'
+
+env:
+  # CONFIGURACIÓN FIJA PARA QA
+  ENV_NAME: 'qa'
+  GCP_PROJECT: 'tu-id-de-proyecto'
+  SERVICE_BACK: 'mi-servicio-back-qa'   # Nombre específico para QA
+  BUCKET_FRONT: 'mi-bucket-front-qa'    # Bucket específico para QA
+
+jobs:
+  # --- TRABAJO 1: BACKEND QA ---
+  deploy-back-qa:
+    runs-on: ubuntu-latest
+    # Este "if" simple evita que corra si no tocaste la carpeta 'back'
+    # (Usa una función nativa de GitHub para detectar cambios)
+    steps:
+      - uses: actions/checkout@v4
+
+      # Detección simple: ¿Cambió la carpeta back?
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            backend: 'back/**'
+      
+      # Solo seguimos si cambió el back
+      - if: steps.filter.outputs.backend == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/123456/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions-sa@tu-id-de-proyecto.iam.gserviceaccount.com'
+
+      - if: steps.filter.outputs.backend == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - if: steps.filter.outputs.backend == 'true'
+        name: Build & Deploy Back QA
+        working-directory: ./back
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          # Etiqueta simple: 'qa-latest' para no llenar el registro
+          docker build -t us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest .
+          docker push us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest
+          
+          gcloud run deploy ${{ env.SERVICE_BACK }} \
+            --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT }}/repo/back:qa-latest \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --min-instances 0 # QA se apaga si no se usa (Ahorro)
+
+  # --- TRABAJO 2: FRONTEND QA ---
+  deploy-front-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            frontend: 'front/**'
+
+      - if: steps.filter.outputs.frontend == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/123456/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions-sa@tu-id-de-proyecto.iam.gserviceaccount.com'
+
+      - if: steps.filter.outputs.frontend == 'true'
+        uses: actions/setup-node@v4
+        with: { node-version: '18' }
+
+      - if: steps.filter.outputs.frontend == 'true'
+        name: Build Front QA
+        working-directory: ./front
+        run: |
+          npm ci
+          # Aquí puedes poner variables fijas de QA si quieres
+          export VITE_API_URL="https://mi-servicio-back-qa-url.run.app"
+          npm run build
+
+      - if: steps.filter.outputs.frontend == 'true'
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: './front/dist'
+          destination: ${{ env.BUCKET_FRONT }}
+          parent: false
