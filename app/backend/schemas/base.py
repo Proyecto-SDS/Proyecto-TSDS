@@ -1,16 +1,14 @@
-from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional
-
 # Base general para todos los schemas.
 
-class SchemaBase(BaseModel):
-    class Config:
-        orm_mode = True
+from typing import Optional
+from datetime import datetime
+from pydantic import BaseModel
 
-class TimestampMixin(BaseModel):
+class TimestampModel(BaseModel):
+    
     creado_el: Optional[datetime] = None
     actualizado_el: Optional[datetime] = None
-
-class SoftDeleteMixin(BaseModel):
     eliminado_el: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True

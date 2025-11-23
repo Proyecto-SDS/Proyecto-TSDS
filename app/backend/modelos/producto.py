@@ -1,8 +1,15 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from db.base import Base
+import enum
+
+class ProductoEnum(enum.Enum):
+    DISPONIBLE = 'disponible'
+    AGOTADO = 'agotado'
+    INACTIVO = 'inactivo'
 
 class Producto(Base):
+
     __tablename__ = "producto"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -10,7 +17,7 @@ class Producto(Base):
     id_categoria = Column(Integer, ForeignKey("categoria.id", ondelete="SET NULL"), nullable=True, index=True)
     nombre = Column(String(100), nullable=False)
     descripcion = Column(String(500), nullable=True)
-    estado = Column(String(20), nullable=False)
+    estado = Column(Enum(ProductoEnum, name="estado_producto_enum"), nullable=False)
     precio = Column(Integer, nullable=False)
 
     # Relaciones

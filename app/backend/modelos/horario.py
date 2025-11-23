@@ -8,7 +8,7 @@ class TipoHorarioEnum(enum.Enum):
     NORMAL = "normal"
     ESPECIAL = "especial"
     EVENTO = "evento"
-
+    CERRADO = "cerrado"
 
 class Horario(Base):
     __tablename__ = "horario"

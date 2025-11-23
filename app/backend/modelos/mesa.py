@@ -4,14 +4,11 @@ from db.base import Base
 import enum
 
 class EstadoMesaEnum(enum.Enum):
-    EN_ATENCION = "En_atencion"
-    ESPERANDO_PEDIDO = "Esperando_pedido"
-    SERVIDO = "Servido"
-    EN_PAGO = "En_pago"
-    LIBRE = "Libre"
-    POR_LIMPIEZA = "Por_limpieza"
-    CIERRE_TURNO = "Cierre_de_turno"
-    MANTENIMIENTO = "Mantenimiento"
+    DISPONIBLE = 'disponible'
+    RESERVADA = 'reservada'
+    OCUPADA = 'ocupada'
+    FUERA_DE_SERVICIO = 'fuera_de_servicio'
+
 class Mesa(Base):
     __tablename__ = "mesa"
 

@@ -5,7 +5,7 @@ from db.base import Base
 import enum
 
 class Estado_PedidoEnum(enum.Enum):
-    CREADO = "creado"
+    CREADO = "abierto"
     EN_PREPARACION = "en_preparacion"
     LISTO = "listo"
     ENTREGADO = "entregado"
