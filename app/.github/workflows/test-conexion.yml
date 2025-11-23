@@ -1,6 +1,8 @@
 name: Test de Conexión GCP
 
 on: 
+  push:
+    branches: [ "develop" ]
   workflow_dispatch: # Esto permite que lo actives manualmente con un clic
 
 jobs:
