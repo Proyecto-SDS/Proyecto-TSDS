@@ -78,6 +78,7 @@ docker-compose ps
 ```
 
 **Resultado esperado:**
+
 ```
 NAME                  STATUS
 backend-db-1          Up (healthy)
@@ -93,12 +94,14 @@ docker-compose --profile init run --rm init-db
 ```
 
 **Qué hace:**
+
 1. Genera migración inicial de Alembic
 2. Crea todas las tablas en PostgreSQL
 3. Ejecuta `seed.py` para insertar datos de referencia (roles, comunas, etc.)
 4. Inserta 5 locales de ejemplo
 
 **Salida esperada:**
+
 ```
 Iniciando configuración de base de datos...
 Generando migración inicial...
@@ -123,6 +126,7 @@ docker-compose up backend
 **Qué hace:** Inicia la API REST de Flask en `http://localhost:5000`.
 
 **Salida esperada:**
+
 ```
 backend-backend-1  |  * Running on http://0.0.0.0:5000
 backend-backend-1  |  * Debug mode: on
@@ -141,6 +145,7 @@ curl http://localhost:5000/locales/
 ```
 
 **Resultado esperado:**
+
 - Health check: `{"status":"ok","message":"Backend Flask funcionando correctamente"}`
 - Locales: Array JSON con 5 locales
 
@@ -199,12 +204,12 @@ docker-compose up backend
 
 El `docker-compose.yml` tiene 4 servicios, pero solo 2 corren por defecto:
 
-| Servicio | ¿Se levanta automáticamente? | Propósito |
-|----------|------------------------------|-----------|
-| `db` | ✅ SÍ | PostgreSQL (siempre activo) |
-| `backend` | ✅ SÍ | API Flask (siempre activo) |
-| `app` | ❌ NO (profile: tools) | Comandos manuales de Alembic |
-| `init-db` | ❌ NO (profile: init) | Inicializar BD (solo primera vez) |
+| Servicio  | ¿Se levanta automáticamente? | Propósito                         |
+| --------- | ---------------------------- | --------------------------------- |
+| `db`      | SÍ                           | PostgreSQL (siempre activo)       |
+| `backend` | SÍ                           | API Flask (siempre activo)        |
+| `app`     | NO (profile: tools)          | Comandos manuales de Alembic      |
+| `init-db` | NO (profile: init)           | Inicializar BD (solo primera vez) |
 
 Los servicios con `profiles` solo se ejecutan cuando los invocas explícitamente.
 
@@ -269,6 +274,7 @@ GET /
 ```
 
 Respuesta:
+
 ```json
 {
   "status": "ok",
@@ -285,6 +291,7 @@ GET /locales
 Retorna todos los locales.
 
 Respuesta:
+
 ```json
 [
   {

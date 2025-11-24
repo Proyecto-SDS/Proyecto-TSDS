@@ -2,19 +2,19 @@
 
 Sistema completo de gestión y reservas para locales comerciales, desarrollado como proyecto del Taller de Sistemas de Software.
 
-## 📋 Descripción
+## Descripción
 
 ReservaYa es una plataforma que permite a los usuarios buscar, explorar y realizar reservas en diferentes tipos de establecimientos (restaurantes, cafeterías, bares, etc.). El sistema cuenta con funcionalidades de:
 
-- 🔍 Búsqueda y filtrado de establecimientos por comuna y tipo
-- 📍 Visualización en mapa interactivo con Mapbox
-- ⭐ Sistema de calificaciones y opiniones
-- 📅 Gestión de reservas de mesas
-- 👤 Perfiles de usuario con autenticación
-- 📸 Galería de fotos de establecimientos
-- 🍽️ Visualización de menús/productos
+- Búsqueda y filtrado de establecimientos por comuna y tipo
+- Visualización en mapa interactivo con Mapbox
+- Sistema de calificaciones y opiniones
+- Gestión de reservas de mesas
+- Perfiles de usuario con autenticación
+- Galería de fotos de establecimientos
+- Visualización de menús/productos
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 El proyecto está organizado en un workspace multi-root con dos carpetas principales:
 
@@ -43,7 +43,7 @@ taller-sistema-software/
 - **Mapas**: Mapbox GL 3.16.0
 - **Forms**: React Hook Form 7.55.0
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Prerequisitos
 
@@ -109,7 +109,7 @@ npm run dev
 
 El frontend estará disponible en `http://localhost:3000`
 
-## 📚 Documentación Detallada
+## Documentación Detallada
 
 ### Backend
 
@@ -123,7 +123,7 @@ Para información sobre la estructura del proyecto, componentes, rutas y tecnolo
 
 - [Frontend README](./frontend/README.md)
 
-## 🛠️ Scripts Útiles
+## 🛠Scripts Útiles
 
 ### Backend (con Docker)
 
@@ -163,41 +163,7 @@ npm run start
 npm run lint
 ```
 
-## 🗂️ Estructura del Workspace
-
-```
-taller-sistema-software/
-├── .vscode/
-│   └── settings.json                    # Configuración de VS Code
-├── taller-sistema-software.code-workspace  # Workspace multi-root
-├── backend/
-│   ├── src/
-│   │   ├── models/                     # Modelos SQLAlchemy
-│   │   ├── routes/                     # Blueprints de Flask
-│   │   ├── services/                   # Lógica de negocio
-│   │   ├── db/                         # Seed data
-│   │   ├── database.py                 # Configuración DB
-│   │   └── main.py                     # Entry point
-│   ├── alembic/                        # Migraciones
-│   ├── scripts/                        # Scripts de inicialización
-│   ├── docker-compose.yml              # Orquestación Docker
-│   ├── Dockerfile.python               # Imagen Docker
-│   └── requirements.txt                # Dependencias Python
-└── frontend/
-    ├── src/
-    │   ├── app/                        # App Router (páginas)
-    │   ├── components/                 # Componentes React
-    │   ├── context/                    # Context API (Auth)
-    │   ├── screens/                    # Pantallas complejas
-    │   ├── types/                      # Tipos TypeScript
-    │   └── utils/                      # Utilidades (API client)
-    ├── middleware.ts                   # Middleware Next.js
-    ├── tailwind.config.ts              # Configuración Tailwind
-    ├── tsconfig.json                   # Configuración TypeScript
-    └── package.json                    # Dependencias Node
-```
-
-## 🔑 Variables de Entorno
+## Variables de Entorno
 
 ### Backend (.env)
 
@@ -225,7 +191,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000
 NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=tu_token_de_mapbox
 ```
 
-## 👥 Equipo de Desarrollo
+## Equipo de Desarrollo
 
 Proyecto desarrollado por el equipo del Taller de Sistemas de Software.
 
@@ -234,11 +200,11 @@ Proyecto desarrollado por el equipo del Taller de Sistemas de Software.
 **Rama actual**: new-dev  
 **Rama principal**: Develop
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto es privado y está desarrollado con fines educativos.
 
-## 🤝 Contribuir
+## Contribuir
 
 Para contribuir al proyecto:
 
@@ -247,7 +213,7 @@ Para contribuir al proyecto:
 3. Asegúrate de que el código esté formateado (Prettier para frontend, autopep8 para backend)
 4. Crea un Pull Request hacia `Develop`
 
-## ❓ Soporte
+## Soporte
 
 Para dudas o problemas:
 
@@ -255,11 +221,11 @@ Para dudas o problemas:
 - Consulta los logs de Docker: `docker-compose logs -f`
 - Verifica las variables de entorno
 
-## 🔄 Estado del Proyecto
+## Estado del Proyecto
 
-✅ Backend API funcional  
-✅ Frontend con diseño completo  
-✅ Autenticación de usuarios  
-✅ Sistema de reservas  
-✅ Integración con Mapbox  
-🚧 En desarrollo continuo
+Backend API funcional  
+Frontend con diseño completo  
+Autenticación de usuarios  
+Sistema de reservas  
+Integración con Mapbox  
+En desarrollo continuo

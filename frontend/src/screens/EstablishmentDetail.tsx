@@ -1,6 +1,17 @@
 'use client';
 
-import { ArrowLeft, Calendar, Check, ChevronLeft, ChevronRight, Heart, MapPin, Phone, Star, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MapPin,
+  Phone,
+  Star,
+  Users,
+} from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { RatingBadge } from '../components/badges/RatingBadge';
@@ -23,7 +34,8 @@ const MOCK_ESTABLISHMENT: Establishment = {
   commune: 'Providencia',
   phone: '+56912345678',
   email: 'contacto@labuena.cl',
-  description: 'Restaurante de comida mediterránea con ambiente acogedor y una carta variada. Especialidad en pastas artesanales y carnes a la parrilla.',
+  description:
+    'Restaurante de comida mediterránea con ambiente acogedor y una carta variada. Especialidad en pastas artesanales y carnes a la parrilla.',
   image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200',
   rating: 4.7,
   reviewCount: 128,
@@ -62,7 +74,8 @@ const MOCK_MENU_ITEMS = [
     id: '2',
     category: 'Entradas',
     name: 'Tabla de Quesos',
-    description: 'Selección de quesos artesanales con mermeladas y frutos secos',
+    description:
+      'Selección de quesos artesanales con mermeladas y frutos secos',
     price: 7800,
     available: true,
   },
@@ -70,7 +83,8 @@ const MOCK_MENU_ITEMS = [
     id: '3',
     category: 'Platos Principales',
     name: 'Pasta Carbonara',
-    description: 'Fettuccine con salsa cremosa de huevo, panceta y queso parmesano',
+    description:
+      'Fettuccine con salsa cremosa de huevo, panceta y queso parmesano',
     price: 8900,
     image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
     available: true,
@@ -118,7 +132,8 @@ const MOCK_OPINIONS: Rating[] = [
     userName: 'María González',
     userAvatar: 'https://i.pravatar.cc/150?u=maria',
     rating: 5,
-    comment: 'Excelente experiencia! La pasta carbonara estaba deliciosa y el servicio fue muy atento. Definitivamente volveré.',
+    comment:
+      'Excelente experiencia! La pasta carbonara estaba deliciosa y el servicio fue muy atento. Definitivamente volveré.',
     date: '2024-11-20T19:30:00',
   },
   {
@@ -127,7 +142,8 @@ const MOCK_OPINIONS: Rating[] = [
     userId: '102',
     userName: 'Carlos Rodríguez',
     rating: 4,
-    comment: 'Muy buen restaurante, ambiente agradable y comida de calidad. Solo el tiempo de espera fue un poco largo.',
+    comment:
+      'Muy buen restaurante, ambiente agradable y comida de calidad. Solo el tiempo de espera fue un poco largo.',
     date: '2024-11-18T20:15:00',
   },
   {
@@ -137,7 +153,8 @@ const MOCK_OPINIONS: Rating[] = [
     userName: 'Ana Martínez',
     userAvatar: 'https://i.pravatar.cc/150?u=ana',
     rating: 5,
-    comment: 'Increíble! La mejor pasta que he probado en Santiago. El tiramisú también espectacular.',
+    comment:
+      'Increíble! La mejor pasta que he probado en Santiago. El tiramisú también espectacular.',
     date: '2024-11-15T21:00:00',
   },
 ];
@@ -150,14 +167,30 @@ const MOCK_TABLES = [
 ];
 
 const TIME_SLOTS = [
-  '19:00', '19:15', '19:30', '19:45',
-  '20:00', '20:15', '20:30', '20:45',
-  '21:00', '21:15', '21:30', '21:45',
-  '22:00', '22:15', '22:30',
+  '19:00',
+  '19:15',
+  '19:30',
+  '19:45',
+  '20:00',
+  '20:15',
+  '20:30',
+  '20:45',
+  '21:00',
+  '21:15',
+  '21:30',
+  '21:45',
+  '22:00',
+  '22:15',
+  '22:30',
 ];
 
 // Header Component
-function EstablishmentHeader({ establishment, onBack, isFavorite, onToggleFavorite }: any) {
+function EstablishmentHeader({
+  establishment,
+  onBack,
+  isFavorite,
+  onToggleFavorite,
+}: any) {
   return (
     <div className="relative h-[300px] overflow-hidden">
       <ImageWithFallback
@@ -166,7 +199,7 @@ function EstablishmentHeader({ establishment, onBack, isFavorite, onToggleFavori
         className="w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-      
+
       {/* Back button */}
       <button
         onClick={onBack}
@@ -184,7 +217,9 @@ function EstablishmentHeader({ establishment, onBack, isFavorite, onToggleFavori
       >
         <Heart
           size={24}
-          className={isFavorite ? 'text-[#EF4444] fill-[#EF4444]' : 'text-[#334155]'}
+          className={
+            isFavorite ? 'text-[#EF4444] fill-[#EF4444]' : 'text-[#334155]'
+          }
         />
       </button>
 
@@ -194,7 +229,10 @@ function EstablishmentHeader({ establishment, onBack, isFavorite, onToggleFavori
           <TypeBadge type={establishment.type} />
         </div>
         <h1 className="text-white mb-2">{establishment.name}</h1>
-        <RatingBadge rating={establishment.rating} reviewCount={establishment.reviewCount} />
+        <RatingBadge
+          rating={establishment.rating}
+          reviewCount={establishment.reviewCount}
+        />
       </div>
     </div>
   );
@@ -207,11 +245,19 @@ function QuickInfoBar({ establishment, onReserveClick, isLoggedIn }: any) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-4">
-            <RatingBadge rating={establishment.rating} reviewCount={establishment.reviewCount} />
-            <StatusBadge status={establishment.status} closingTime={establishment.closingTime} />
+            <RatingBadge
+              rating={establishment.rating}
+              reviewCount={establishment.reviewCount}
+            />
+            <StatusBadge
+              status={establishment.status}
+              closingTime={establishment.closingTime}
+            />
             <div className="flex items-center gap-1 text-sm text-[#64748B]">
               <MapPin size={16} />
-              <span>{establishment.address}, {establishment.commune}</span>
+              <span>
+                {establishment.address}, {establishment.commune}
+              </span>
             </div>
           </div>
           {isLoggedIn && (
@@ -245,11 +291,16 @@ function InformacionTab({ establishment, hours, photos }: any) {
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <MapPin size={20} className="text-[#F97316]" />
-            <span className="text-[#64748B]">{establishment.address}, {establishment.commune}</span>
+            <span className="text-[#64748B]">
+              {establishment.address}, {establishment.commune}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <Phone size={20} className="text-[#F97316]" />
-            <a href={`tel:${establishment.phone}`} className="text-[#3B82F6] hover:underline">
+            <a
+              href={`tel:${establishment.phone}`}
+              className="text-[#3B82F6] hover:underline"
+            >
               {formatPhoneNumber(establishment.phone)}
             </a>
             <a
@@ -269,9 +320,14 @@ function InformacionTab({ establishment, hours, photos }: any) {
         <h2 className="text-[#334155] mb-3">Horarios</h2>
         <div className="space-y-2">
           {hours.map((hour: any, index: number) => (
-            <div key={index} className="flex justify-between items-center py-2 border-b border-[#E2E8F0] last:border-0">
+            <div
+              key={index}
+              className="flex justify-between items-center py-2 border-b border-[#E2E8F0] last:border-0"
+            >
               <span className="text-[#334155]">{hour.day}</span>
-              <span className={hour.isOpen ? 'text-[#64748B]' : 'text-[#EF4444]'}>
+              <span
+                className={hour.isOpen ? 'text-[#64748B]' : 'text-[#EF4444]'}
+              >
                 {hour.isOpen ? `${hour.open} - ${hour.close}` : 'Cerrado'}
               </span>
             </div>
@@ -289,7 +345,11 @@ function InformacionTab({ establishment, hours, photos }: any) {
               onClick={() => setSelectedPhoto(photo)}
               className="aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
             >
-              <ImageWithFallback src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+              <ImageWithFallback
+                src={photo}
+                alt={`Foto ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>
@@ -308,7 +368,11 @@ function InformacionTab({ establishment, hours, photos }: any) {
           >
             ×
           </button>
-          <ImageWithFallback src={selectedPhoto} alt="Foto ampliada" className="max-w-full max-h-full object-contain" />
+          <ImageWithFallback
+            src={selectedPhoto}
+            alt="Foto ampliada"
+            className="max-w-full max-h-full object-contain"
+          />
         </div>
       )}
     </div>
@@ -317,12 +381,14 @@ function InformacionTab({ establishment, hours, photos }: any) {
 
 // Tab 2: Menú
 function MenuTab({ menuItems }: any) {
-  const categories = Array.from(new Set(menuItems.map((item: any) => item.category))) as string[];
+  const categories = Array.from(
+    new Set(menuItems.map((item: any) => item.category))
+  ) as string[];
 
   return (
     <div className="space-y-8">
       <h2 className="text-[#334155]">Menú</h2>
-      
+
       {categories.map((category: string) => (
         <section key={category}>
           <h3 className="text-[#334155] mb-4">{category}</h3>
@@ -330,19 +396,36 @@ function MenuTab({ menuItems }: any) {
             {menuItems
               .filter((item: any) => item.category === category)
               .map((item: any) => (
-                <div key={item.id} className="bg-white rounded-xl border border-[#E2E8F0] p-4 flex gap-4">
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl border border-[#E2E8F0] p-4 flex gap-4"
+                >
                   {item.image && (
                     <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden">
-                      <ImageWithFallback src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <ImageWithFallback
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="text-[#334155]">{item.name}</h4>
-                      <span className="text-[#F97316]">${item.price.toLocaleString('es-CL')}</span>
+                      <span className="text-[#F97316]">
+                        ${item.price.toLocaleString('es-CL')}
+                      </span>
                     </div>
-                    <p className="text-sm text-[#64748B] mb-2">{item.description}</p>
-                    <span className={`text-xs px-2 py-1 rounded ${item.available ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-[#94A3B8]/10 text-[#94A3B8]'}`}>
+                    <p className="text-sm text-[#64748B] mb-2">
+                      {item.description}
+                    </p>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        item.available
+                          ? 'bg-[#22C55E]/10 text-[#22C55E]'
+                          : 'bg-[#94A3B8]/10 text-[#94A3B8]'
+                      }`}
+                    >
                       {item.available ? 'Disponible' : 'Agotado'}
                     </span>
                   </div>
@@ -356,12 +439,12 @@ function MenuTab({ menuItems }: any) {
 }
 
 // Tab 3: Opiniones
-function OpinionesTab({ 
-  opinions, 
-  currentUserOpinion, 
+function OpinionesTab({
+  opinions,
+  currentUserOpinion,
   isLoggedIn,
   onSubmitOpinion,
-  onLoginClick 
+  onLoginClick,
 }: any) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -369,9 +452,11 @@ function OpinionesTab({
   const [currentPage, setCurrentPage] = useState(1);
   const opinionsPerPage = 5;
 
-  const avgRating = opinions.reduce((sum: number, op: any) => sum + op.rating, 0) / opinions.length;
-  const ratingDistribution = [5, 4, 3, 2, 1].map(stars => 
-    opinions.filter((op: any) => op.rating === stars).length
+  const avgRating =
+    opinions.reduce((sum: number, op: any) => sum + op.rating, 0) /
+    opinions.length;
+  const ratingDistribution = [5, 4, 3, 2, 1].map(
+    (stars) => opinions.filter((op: any) => op.rating === stars).length
   );
 
   const handleSubmit = () => {
@@ -382,7 +467,9 @@ function OpinionesTab({
     }
   };
 
-  const totalPages = Math.ceil((opinions.length - (currentUserOpinion ? 1 : 0)) / opinionsPerPage);
+  const totalPages = Math.ceil(
+    (opinions.length - (currentUserOpinion ? 1 : 0)) / opinionsPerPage
+  );
   const startIndex = (currentPage - 1) * opinionsPerPage;
   const displayedOpinions = opinions
     .filter((op: any) => op.id !== currentUserOpinion?.id)
@@ -402,13 +489,14 @@ function OpinionesTab({
           <div className="flex-1 space-y-2">
             {ratingDistribution.map((count, index) => {
               const stars = 5 - index;
-              const percentage = opinions.length > 0 ? (count / opinions.length) * 100 : 0;
+              const percentage =
+                opinions.length > 0 ? (count / opinions.length) * 100 : 0;
               return (
                 <div key={stars} className="flex items-center gap-2">
-                  <span className="text-sm text-[#64748B] w-12">{stars} ⭐</span>
+                  <span className="text-sm text-[#64748B] w-12">{stars} </span>
                   <div className="flex-1 h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-[#22C55E]" 
+                    <div
+                      className="h-full bg-[#22C55E]"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -423,7 +511,9 @@ function OpinionesTab({
       {/* User's Opinion Input or Existing Opinion */}
       {!isLoggedIn ? (
         <div className="bg-[#F1F5F9] rounded-xl p-6 text-center">
-          <p className="text-[#64748B] mb-4">Inicia sesión para escribir una opinión</p>
+          <p className="text-[#64748B] mb-4">
+            Inicia sesión para escribir una opinión
+          </p>
           <PrimaryButton onClick={onLoginClick}>Iniciar sesión</PrimaryButton>
         </div>
       ) : currentUserOpinion ? (
@@ -434,18 +524,26 @@ function OpinionesTab({
               {currentUserOpinion.userName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
-              <h4 className="text-[#334155] mb-1">{currentUserOpinion.userName}</h4>
+              <h4 className="text-[#334155] mb-1">
+                {currentUserOpinion.userName}
+              </h4>
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
                       size={16}
-                      className={star <= currentUserOpinion.rating ? 'fill-[#F97316] text-[#F97316]' : 'text-[#E2E8F0]'}
+                      className={
+                        star <= currentUserOpinion.rating
+                          ? 'fill-[#F97316] text-[#F97316]'
+                          : 'text-[#E2E8F0]'
+                      }
                     />
                   ))}
                 </div>
-                <span className="text-sm text-[#64748B]">{getRelativeTime(currentUserOpinion.date)}</span>
+                <span className="text-sm text-[#64748B]">
+                  {getRelativeTime(currentUserOpinion.date)}
+                </span>
               </div>
               <p className="text-[#64748B]">{currentUserOpinion.comment}</p>
             </div>
@@ -454,7 +552,7 @@ function OpinionesTab({
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
           <h3 className="text-[#334155] mb-4">¿Cuál fue tu experiencia?</h3>
-          
+
           {/* Star Rating */}
           <div className="flex gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -487,9 +585,13 @@ function OpinionesTab({
               rows={4}
             />
             <div className="flex justify-between items-center mt-1">
-              <span className="text-sm text-[#64748B]">{comment.length}/500</span>
+              <span className="text-sm text-[#64748B]">
+                {comment.length}/500
+              </span>
               {comment.length < 20 && comment.length > 0 && (
-                <span className="text-sm text-[#EF4444]">Mínimo 20 caracteres</span>
+                <span className="text-sm text-[#EF4444]">
+                  Mínimo 20 caracteres
+                </span>
               )}
             </div>
           </div>
@@ -523,7 +625,10 @@ function OpinionesTab({
           </div>
         ) : (
           displayedOpinions.map((opinion: Rating) => (
-            <div key={opinion.id} className="bg-white rounded-xl border border-[#E2E8F0] p-4">
+            <div
+              key={opinion.id}
+              className="bg-white rounded-xl border border-[#E2E8F0] p-4"
+            >
               <div className="flex items-start gap-4">
                 {opinion.userAvatar ? (
                   <ImageWithFallback
@@ -544,11 +649,17 @@ function OpinionesTab({
                         <Star
                           key={star}
                           size={16}
-                          className={star <= opinion.rating ? 'fill-[#F97316] text-[#F97316]' : 'text-[#E2E8F0]'}
+                          className={
+                            star <= opinion.rating
+                              ? 'fill-[#F97316] text-[#F97316]'
+                              : 'text-[#E2E8F0]'
+                          }
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-[#64748B]">{getRelativeTime(opinion.date)}</span>
+                    <span className="text-sm text-[#64748B]">
+                      {getRelativeTime(opinion.date)}
+                    </span>
                   </div>
                   <p className="text-[#64748B]">{opinion.comment}</p>
                 </div>
@@ -561,7 +672,7 @@ function OpinionesTab({
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-4 pt-4">
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="p-2 rounded-lg hover:bg-[#F1F5F9] disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -571,7 +682,7 @@ function OpinionesTab({
               Página {currentPage} de {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="p-2 rounded-lg hover:bg-[#F1F5F9] disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -604,7 +715,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
     const bookedMesas = ['t4']; // Mock booked mesas
     return tables.map((mesa: any) => ({
       ...mesa,
-      status: bookedMesas.includes(mesa.id) ? 'reservada' : 'disponible'
+      status: bookedMesas.includes(mesa.id) ? 'reservada' : 'disponible',
     }));
   };
 
@@ -628,11 +739,11 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
   const formatDateDisplay = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('es-CL', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('es-CL', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -659,11 +770,11 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   const handleConfirm = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Simulate API call: POST /api/reservas
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Success - go to step 6
       setReservationStep(6);
     } catch (err) {
@@ -676,7 +787,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   if (!isLoggedIn) {
     return (
       <div className="bg-[#F1F5F9] rounded-xl p-6 text-center">
-        <p className="text-[#64748B] mb-4">Inicia sesión para hacer una reserva</p>
+        <p className="text-[#64748B] mb-4">
+          Inicia sesión para hacer una reserva
+        </p>
         <PrimaryButton onClick={onLoginClick}>Iniciar sesión</PrimaryButton>
       </div>
     );
@@ -685,7 +798,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   // STEP 1: SELECT DATE & TIME
   if (reservationStep === 1) {
     const isStep1Valid = selectedDate && selectedTime;
-    
+
     return (
       <div className="space-y-6">
         <div>
@@ -710,7 +823,10 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   max={getMaxDate()}
                   className="w-full px-4 py-3 pl-12 border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 text-[#334155] bg-white cursor-pointer hover:border-[#F97316]/50 transition-colors [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full"
                 />
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F97316] pointer-events-none" size={20} />
+                <Calendar
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F97316] pointer-events-none"
+                  size={20}
+                />
               </div>
             </div>
 
@@ -724,7 +840,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
               >
                 <option value="">Selecciona una hora</option>
                 {TIME_SLOTS.map((time) => (
-                  <option key={time} value={time}>{time}</option>
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
                 ))}
               </select>
             </div>
@@ -754,7 +872,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   // STEP 2: SELECT AVAILABLE MESAS
   if (reservationStep === 2) {
     const isStep2Valid = selectedMesa !== null;
-    
+
     return (
       <div className="space-y-6">
         <div>
@@ -772,7 +890,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             {availableMesas.map((mesa) => {
               const isAvailable = mesa.status === 'disponible';
               const isSelected = selectedMesa?.id === mesa.id;
-              
+
               return (
                 <button
                   key={mesa.id}
@@ -780,17 +898,25 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   disabled={!isAvailable}
                   className={`
                     p-4 rounded-xl border-3 text-left transition-all
-                    ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}
-                    ${isSelected ? 'border-[#F97316] bg-[#F97316]/5' : 'border-[#E2E8F0]'}
+                    ${
+                      !isAvailable
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer hover:shadow-md'
+                    }
+                    ${
+                      isSelected
+                        ? 'border-[#F97316] bg-[#F97316]/5'
+                        : 'border-[#E2E8F0]'
+                    }
                   `}
                   style={{ borderWidth: isSelected ? '3px' : '1px' }}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-[#334155]">{mesa.name}</h4>
-                    <span 
+                    <span
                       className={`text-xs px-2 py-1 rounded ${
-                        isAvailable 
-                          ? 'bg-[#22C55E]/10 text-[#22C55E]' 
+                        isAvailable
+                          ? 'bg-[#22C55E]/10 text-[#22C55E]'
                           : 'bg-[#94A3B8]/10 text-[#94A3B8]'
                       }`}
                     >
@@ -836,7 +962,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   // STEP 3: SELECT PARTY SIZE
   if (reservationStep === 3) {
     const isStep3Valid = partySize >= 1 && partySize <= selectedMesa.capacity;
-    
+
     return (
       <div className="space-y-6">
         <div>
@@ -863,7 +989,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
               <div className="text-sm text-[#64748B]">personas</div>
             </div>
             <button
-              onClick={() => setPartySize(Math.min(selectedMesa.capacity, partySize + 1))}
+              onClick={() =>
+                setPartySize(Math.min(selectedMesa.capacity, partySize + 1))
+              }
               className="w-12 h-12 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] transition-colors flex items-center justify-center text-2xl"
               disabled={partySize >= selectedMesa.capacity}
             >
@@ -942,10 +1070,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             Cancelar
           </button>
           <div className="flex-1" />
-          <PrimaryButton
-            onClick={handleNext}
-            className="px-8"
-          >
+          <PrimaryButton onClick={handleNext} className="px-8">
             Siguiente
           </PrimaryButton>
         </div>
@@ -962,7 +1087,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             <h2 className="text-[#334155]">Revisa tu reserva</h2>
             <span className="text-sm text-[#64748B]">Paso 5 de 6</span>
           </div>
-          <p className="text-[#64748B]">Verifica que todo esté correcto antes de confirmar</p>
+          <p className="text-[#64748B]">
+            Verifica que todo esté correcto antes de confirmar
+          </p>
         </div>
 
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
@@ -977,7 +1104,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Fecha</span>
-              <span className="text-[#334155]">{formatDateDisplay(selectedDate)}</span>
+              <span className="text-[#334155]">
+                {formatDateDisplay(selectedDate)}
+              </span>
             </div>
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
@@ -987,12 +1116,16 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Mesa</span>
-              <span className="text-[#334155]">{selectedMesa.name} (Capacidad: {selectedMesa.capacity})</span>
+              <span className="text-[#334155]">
+                {selectedMesa.name} (Capacidad: {selectedMesa.capacity})
+              </span>
             </div>
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Número de personas</span>
-              <span className="text-[#334155]">{partySize} {partySize === 1 ? 'persona' : 'personas'}</span>
+              <span className="text-[#334155]">
+                {partySize} {partySize === 1 ? 'persona' : 'personas'}
+              </span>
             </div>
 
             <div className="flex justify-between py-3">
@@ -1060,7 +1193,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             <Check size={40} className="text-[#22C55E]" />
           </div>
           <h2 className="text-[#334155] mb-2">¡Tu reserva está confirmada!</h2>
-          <p className="text-[#64748B]">Hemos enviado los detalles a tu correo</p>
+          <p className="text-[#64748B]">
+            Hemos enviado los detalles a tu correo
+          </p>
         </div>
 
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
@@ -1072,7 +1207,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Fecha</span>
-              <span className="text-[#334155]">{formatDateDisplay(selectedDate)}</span>
+              <span className="text-[#334155]">
+                {formatDateDisplay(selectedDate)}
+              </span>
             </div>
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
@@ -1102,7 +1239,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   className="flex-1 px-4 py-2 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] text-[#334155]"
                 />
                 <button
-                  onClick={() => navigator.clipboard.writeText(confirmationNumber)}
+                  onClick={() =>
+                    navigator.clipboard.writeText(confirmationNumber)
+                  }
                   className="px-4 py-2 text-sm text-[#F97316] hover:text-[#EA580C] transition-colors"
                 >
                   Copiar
@@ -1119,10 +1258,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
           >
             Ver mis reservas
           </SecondaryButton>
-          <PrimaryButton
-            onClick={() => router.push('/')}
-            className="flex-1"
-          >
+          <PrimaryButton onClick={() => router.push('/')} className="flex-1">
             Ir a inicio
           </PrimaryButton>
         </div>
@@ -1201,9 +1337,7 @@ export default function EstablishmentDetail() {
               photos={MOCK_PHOTOS}
             />
           )}
-          {activeTab === 'menu' && (
-            <MenuTab menuItems={MOCK_MENU_ITEMS} />
-          )}
+          {activeTab === 'menu' && <MenuTab menuItems={MOCK_MENU_ITEMS} />}
           {activeTab === 'opiniones' && (
             <OpinionesTab
               opinions={MOCK_OPINIONS}

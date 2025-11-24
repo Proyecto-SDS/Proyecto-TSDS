@@ -251,7 +251,7 @@ def obtener_colores_estado(enum_value) -> Dict[str, str]:
         EstadoMesaEnum.FUERA_DE_SERVICIO: {"color": "red", "icono": "", "label": "Fuera de Servicio"},
     }
     
-    return color_map.get(enum_value, {"color": "gray", "icono": "❓", "label": str(enum_value)})
+    return color_map.get(enum_value, {"color": "gray", "icono": "", "label": str(enum_value)})
 
 def validar_transicion_estado(estado_actual, estado_nuevo, enum_class) -> bool:
     """Valida si la transición de estados es permitida"""
