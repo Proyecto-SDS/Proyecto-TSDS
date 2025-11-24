@@ -2,28 +2,28 @@ name: Despliegue QA (Develop)
 
 on:
   push:
-    branches: [ "Develop" ] # CORREGIDO: "realease" suele ser un error de dedo
+    branches: [ "Develop" ] # Asegúrate que sea minuscula (develop)
     paths:
       - 'front/**'
       - 'back/**'
-  workflow_dispatch: # Botón para activar manual si es necesario
+  workflow_dispatch:
 
 env:
-  # --- TUS DATOS REALES ---
+  # --- DATOS DEL PROYECTO ---
   PROJECT_ID: 'restomap-478918'
   REGION: 'us-central1'
-  REPO_NAME: 'repo' # El nombre del repositorio en Artifact Registry
+  REPO_NAME: 'repo'
   
-  # Nombres de los servicios en Cloud Run
+  # Nombres de los servicios
   SERVICE_BACK: 'back-qa'
-  SERVICE_FRONT: 'front-qa' # Antes era un Bucket, ahora es un Servicio
+  SERVICE_FRONT: 'front-qa'
   
-  # Tu Base de Datos
+  # Instancia SQL
   SQL_INSTANCE: 'restomap-478918:us-central1:restomap'
 
 jobs:
   # ------------------------------------------------------------------
-  # TRABAJO 1: BACKEND (Python + SQL)
+  # TRABAJO 1: BACKEND (Python + SQL + Secretos)
   # ------------------------------------------------------------------
   deploy-back-qa:
     runs-on: ubuntu-latest
@@ -35,12 +35,11 @@ jobs:
           filters: |
             backend: 'back/**'
 
-      # Autenticación con el Provider que ya funciona
+      # Autenticación (Revisa si usas github-provider-2 o el que funcionó)
       - if: steps.filter.outputs.backend == 'true'
         uses: google-github-actions/auth@v2
         with:
-          # REVISA QUE EL FINAL SEA EL PROVIDER CORRECTO (ej: github-provider-2 o 3)
-          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider1'
+          workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider-2'
           service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
       - if: steps.filter.outputs.backend == 'true'
@@ -52,20 +51,19 @@ jobs:
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
           
-          # Creamos etiqueta con SHA para trazabilidad
           IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/back:${{ github.sha }}"
           
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
           
-          # Despliegue con conexión a SQL
+          # AQUÍ ESTÁ LA MAGIA DE LOS SECRETOS
           gcloud run deploy ${{ env.SERVICE_BACK }} \
             --image $IMAGE_TAG \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
             --min-instances 0 \
             --add-cloudsql-instances="${{ env.SQL_INSTANCE }}" \
-            --set-env-vars="DB_HOST=/cloudsql/${{ env.SQL_INSTANCE }}"
+            --set-env-vars="DB_HOST=/cloudsql/${{ env.SQL_INSTANCE }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }}"
 
   # ------------------------------------------------------------------
   # TRABAJO 2: FRONTEND (Next.js en Cloud Run)
@@ -83,7 +81,6 @@ jobs:
       - if: steps.filter.outputs.frontend == 'true'
         uses: google-github-actions/auth@v2
         with:
-          # Debe ser el mismo provider que arriba
           workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider-2'
           service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
@@ -98,8 +95,7 @@ jobs:
           
           IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/front:${{ github.sha }}"
           
-          # IMPORTANTE: Pasamos la URL del back al momento de construir (Build Args)
-          # Cambia esta URL cuando tengas la definitiva del backend de QA
+          # IMPORTANTE: Cambia esta URL cuando tengas la definitiva del backend
           BACKEND_URL="https://back-qa-pendiente.run.app"
 
           docker build \
@@ -108,7 +104,6 @@ jobs:
             
           docker push $IMAGE_TAG
           
-          # Despliegue en Cloud Run (Ya no usamos Buckets)
           gcloud run deploy ${{ env.SERVICE_FRONT }} \
             --image $IMAGE_TAG \
             --region ${{ env.REGION }} \
