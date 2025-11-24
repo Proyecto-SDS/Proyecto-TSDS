@@ -14,7 +14,10 @@ env:
   REGION: 'us-central1'
   REPO_NAME: 'repo'
   SQL_INSTANCE: 'restomap-478918:us-central1:restomap'
-  
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
   # NOTA: Los nombres de los servicios ahora se generan dinámicamente abajo
   # para que sean únicos por cápsula (ej: back-qa-capsula1).
 
