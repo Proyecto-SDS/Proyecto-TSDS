@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        capsule: [capsula1, capsula2, capsula3]
+        capsule: [cápsula1, cápsula2, cápsula3]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
         id: filter
         with:
           filters: |
-            backend: 'capsulas/${{ matrix.capsule }}/back/**'
+            backend: 'cápsulas/${{ matrix.capsule }}/back/**'
 
       # Autenticación (Se ejecuta si hay cambios O si es manual)
       - if: steps.filter.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
@@ -51,7 +51,7 @@ jobs:
 
       - if: steps.filter.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         name: Deploy Back (${{ matrix.capsule }})
-        working-directory: ./capsulas/${{ matrix.capsule }}/back
+        working-directory: ./cápsulas/${{ matrix.capsule }}/back
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
           
@@ -78,7 +78,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        capsule: [capsula1, capsula2, capsula3]
+        capsule: [cápsula1, cápsula2, cápsula3]
 
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
         id: filter
         with:
           filters: |
-            frontend: 'capsulas/${{ matrix.capsule }}/front/**'
+            frontend: 'cápsulas/${{ matrix.capsule }}/front/**'
 
       # Autenticación
       - if: steps.filter.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
@@ -101,7 +101,7 @@ jobs:
 
       - if: steps.filter.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
         name: Deploy Front (${{ matrix.capsule }})
-        working-directory: ./capsulas/${{ matrix.capsule }}/front
+        working-directory: ./cápsulas/${{ matrix.capsule }}/front
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
           
