@@ -22,7 +22,7 @@ def create_app():
         return jsonify({"status": "ok", "message": "Backend Flask funcionando correctamente"})
 
     # Registrar Blueprints (Rutas)
-    from routes.locales import locales_bp
+    from routes import locales_bp
     app.register_blueprint(locales_bp)
 
     return app

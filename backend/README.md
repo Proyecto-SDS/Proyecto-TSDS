@@ -137,7 +137,7 @@ En otra terminal o navegador:
 curl http://localhost:5000/
 
 # Ver locales
-curl http://localhost:5000/locales
+curl http://localhost:5000/locales/
 ```
 
 **Resultado esperado:**
@@ -184,7 +184,7 @@ docker-compose down
 Si quieres empezar de cero:
 
 ```bash
-# ⚠️ CUIDADO: Esto borra TODOS los datos de la base de datos
+# CUIDADO: Esto borra TODOS los datos de la base de datos
 docker-compose down -v
 
 # Re-inicializar desde cero
@@ -260,7 +260,7 @@ docker-compose run --rm app python src/db/seed.py
 
 El seed es **idempotente**: solo inserta datos que no existen.
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Health Check
 
@@ -329,7 +329,7 @@ graph TD
 - Los datos se persisten en el volumen `pgdata` de Docker
 - El backend se recarga automáticamente con cambios (hot-reload)
 
-## 🆘 Problemas Comunes
+## Problemas Comunes
 
 ### Puerto 5432 en uso
 
@@ -355,6 +355,6 @@ chmod +x scripts/init_db.sh
 
 Asegúrate que `PYTHONPATH=/app/src` esté configurado en `docker-compose.yml`.
 
-## 📧 Contacto
+## Contacto
 
 Para dudas o sugerencias, contacta al equipo de desarrollo.

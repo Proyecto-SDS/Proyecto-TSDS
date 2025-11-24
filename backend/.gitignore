@@ -24,9 +24,6 @@ build/
 dist/
 *.egg-info/
 
-# VSCode
-.vscode/
-
 # Cache en general
 *.cache/
 .cache/

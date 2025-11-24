@@ -3,7 +3,6 @@
 MODELOS SQLALCHEMY COMPLETOS + ENUMS
 Sistema de Gestión de Locales, Pedidos y Reservas
 Compatible con: Flask, SQLAlchemy, PostgreSQL, Pydantic v2
-VERSIÓN CONSOLIDADA (TODO EN UN ARCHIVO)
 ========================================
 """
 
