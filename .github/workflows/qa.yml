@@ -47,11 +47,14 @@ jobs:
           workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider1'
           service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
-      - if: steps.filter.outputs.backend == 'true'
-        uses: google-github-actions/setup-gcloud@v2
+      - if: steps.filter.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+        uses: google-github-actions/auth@v2
 
       # --- Build & Deploy ---
-      - if: steps.filter.outputs.backend == 'true'
+      - if: steps.filter.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - if: steps.filter.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
         name: Deploy Back (${{ matrix.capsule }})
         working-directory: ./capsulas/${{ matrix.capsule }}/back
         run: |
@@ -103,8 +106,8 @@ jobs:
           workload_identity_provider: 'projects/414435283954/locations/global/workloadIdentityPools/github-pool/providers/github-provider1'
           service_account: 'github-deploy-sa@restomap-478918.iam.gserviceaccount.com'
 
-      - if: steps.filter.outputs.frontend == 'true'
-        uses: google-github-actions/setup-gcloud@v2
+      - if: steps.filter.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+        uses: google-github-actions/auth@v2
 
       # --- Build & Deploy ---
       - if: steps.filter.outputs.frontend == 'true'
