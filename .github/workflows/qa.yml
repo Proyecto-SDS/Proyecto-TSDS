@@ -2,10 +2,10 @@ name: Despliegue QA (Develop)
 
 on:
   push:
-    branches: [ "Develop" ] # Asegúrate que sea minuscula (develop)
+    branches: [ "Develop" ]
     paths:
-      - 'front/**'
-      - 'back/**'
+      # Escucha cambios en cualquier carpeta dentro de capsulas
+      - 'capsulas/**'
   workflow_dispatch:
 
 env:
@@ -13,29 +13,34 @@ env:
   PROJECT_ID: 'restomap-478918'
   REGION: 'us-central1'
   REPO_NAME: 'repo'
-  
-  # Nombres de los servicios
-  SERVICE_BACK: 'back-qa'
-  SERVICE_FRONT: 'front-qa'
-  
-  # Instancia SQL
   SQL_INSTANCE: 'restomap-478918:us-central1:restomap'
+  
+  # NOTA: Los nombres de los servicios ahora se generan dinámicamente abajo
+  # para que sean únicos por cápsula (ej: back-qa-capsula1).
 
 jobs:
-  # ------------------------------------------------------------------
-  # TRABAJO 1: BACKEND (Python + SQL + Secretos)
-  # ------------------------------------------------------------------
-  deploy-back-qa:
+  # ==================================================================
+  # TRABAJO 1: BACKEND (Matriz para las 3 cápsulas)
+  # ==================================================================
+  deploy-back:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Si falla una cápsula, las otras siguen
+      matrix:
+        # AQUI: Agrega o quita nombres de cápsulas según necesites
+        capsule: [capsula1, capsula2, capsula3]
+
     steps:
       - uses: actions/checkout@v4
+
+      # Detectar si hubo cambios SOLO en la cápsula actual de la matriz
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
-            backend: 'back/**'
+            backend: 'capsulas/${{ matrix.capsule }}/back/**'
 
-      # Autenticación (Revisa si usas github-provider-2 o el que funcionó)
+      # --- Autenticación (Solo si hubo cambios) ---
       - if: steps.filter.outputs.backend == 'true'
         uses: google-github-actions/auth@v2
         with:
@@ -45,19 +50,25 @@ jobs:
       - if: steps.filter.outputs.backend == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
+      # --- Build & Deploy ---
       - if: steps.filter.outputs.backend == 'true'
-        name: Build & Deploy Back QA
-        working-directory: ./back
+        name: Deploy Back (${{ matrix.capsule }})
+        working-directory: ./capsulas/${{ matrix.capsule }}/back
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
           
-          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/back:${{ github.sha }}"
+          # Definir nombre del servicio dinámicamente: ej. back-qa-capsula1
+          SERVICE_NAME="back-qa-${{ matrix.capsule }}"
+          
+          # Tag único para esta imagen
+          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/back-${{ matrix.capsule }}:${{ github.sha }}"
+          
+          echo "Desplegando servicio: $SERVICE_NAME"
           
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
           
-          # AQUÍ ESTÁ LA MAGIA DE LOS SECRETOS
-          gcloud run deploy ${{ env.SERVICE_BACK }} \
+          gcloud run deploy $SERVICE_NAME \
             --image $IMAGE_TAG \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
@@ -65,19 +76,27 @@ jobs:
             --add-cloudsql-instances="${{ env.SQL_INSTANCE }}" \
             --set-env-vars="DB_HOST=/cloudsql/${{ env.SQL_INSTANCE }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }}"
 
-  # ------------------------------------------------------------------
-  # TRABAJO 2: FRONTEND (Next.js en Cloud Run)
-  # ------------------------------------------------------------------
-  deploy-front-qa:
+  # ==================================================================
+  # TRABAJO 2: FRONTEND (Matriz para las 3 cápsulas)
+  # ==================================================================
+  deploy-front:
+    needs: deploy-back # Opcional: espera a que el back termine (quítalo si quieres paralelismo total)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        capsule: [capsula1, capsula2, capsula3]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
-            frontend: 'front/**'
+            frontend: 'capsulas/${{ matrix.capsule }}/front/**'
 
+      # --- Autenticación ---
       - if: steps.filter.outputs.frontend == 'true'
         uses: google-github-actions/auth@v2
         with:
@@ -87,16 +106,25 @@ jobs:
       - if: steps.filter.outputs.frontend == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
+      # --- Build & Deploy ---
       - if: steps.filter.outputs.frontend == 'true'
-        name: Build & Deploy Front QA
-        working-directory: ./front
+        name: Deploy Front (${{ matrix.capsule }})
+        working-directory: ./capsulas/${{ matrix.capsule }}/front
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
           
-          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/front:${{ github.sha }}"
+          SERVICE_NAME="front-qa-${{ matrix.capsule }}"
           
-          # IMPORTANTE: Cambia esta URL cuando tengas la definitiva del backend
-          BACKEND_URL="https://back-qa-pendiente.run.app"
+          # URL del backend correspondiente a esta cápsula
+          # Asumiendo que Cloud Run genera URLs predecibles o tienes un dominio mapeado.
+          # Si es la URL por defecto de Cloud Run, necesitarás obtenerla dinámicamente o conocerla de antemano.
+          # Ejemplo: https://back-qa-capsula1-xxxxx.run.app
+          # Por ahora, dejo un placeholder dinámico basado en el nombre:
+          BACKEND_URL="https://back-qa-${{ matrix.capsule }}-pendiente.run.app"
+
+          IMAGE_TAG="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/front-${{ matrix.capsule }}:${{ github.sha }}"
+          
+          echo "Desplegando servicio: $SERVICE_NAME conectado a $BACKEND_URL"
 
           docker build \
             --build-arg NEXT_PUBLIC_API_URL=$BACKEND_URL \
@@ -104,7 +132,7 @@ jobs:
             
           docker push $IMAGE_TAG
           
-          gcloud run deploy ${{ env.SERVICE_FRONT }} \
+          gcloud run deploy $SERVICE_NAME \
             --image $IMAGE_TAG \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
