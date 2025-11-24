@@ -1,7 +1,7 @@
 // API Client for ReservaYa
 // Handles all API calls to Flask backend
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface ApiCallOptions extends RequestInit {
   token?: string;
@@ -9,12 +9,12 @@ interface ApiCallOptions extends RequestInit {
 
 export async function apiCall(endpoint: string, options: ApiCallOptions = {}) {
   const token = options.token || localStorage.getItem('auth_token');
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -47,7 +47,12 @@ export const api = {
       body: JSON.stringify({ correo, contrasena }),
     }),
 
-  register: (nombre: string, correo: string, telefono: string, contrasena: string) =>
+  register: (
+    nombre: string,
+    correo: string,
+    telefono: string,
+    contrasena: string
+  ) =>
     apiCall('/api/register', {
       method: 'POST',
       body: JSON.stringify({ nombre, correo, telefono, contrasena }),
@@ -69,12 +74,13 @@ export const api = {
 
   // Establishment endpoints
   getEstablishments: (params?: { comuna_id?: string; tipo_id?: string }) => {
-    const query = params ? `?${new URLSearchParams(params as any).toString()}` : '';
+    const query = params
+      ? `?${new URLSearchParams(params as any).toString()}`
+      : '';
     return apiCall(`/api/establecimientos${query}`);
   },
 
-  getEstablishmentById: (id: string) =>
-    apiCall(`/api/establecimientos/${id}`),
+  getEstablishmentById: (id: string) => apiCall(`/api/establecimientos/${id}`),
 
   getEstablishmentHours: (id: string) =>
     apiCall(`/api/establecimientos/${id}/horario`),
@@ -87,7 +93,9 @@ export const api = {
 
   // Opinion endpoints
   getOpinions: (id: string, page: number = 1, limit: number = 10) =>
-    apiCall(`/api/establecimientos/${id}/opiniones?page=${page}&limit=${limit}`),
+    apiCall(
+      `/api/establecimientos/${id}/opiniones?page=${page}&limit=${limit}`
+    ),
 
   getUserOpinion: (id: string) =>
     apiCall(`/api/establecimientos/${id}/opiniones/user`),
@@ -99,8 +107,7 @@ export const api = {
     }),
 
   // Reservation endpoints
-  getTables: (id: string) =>
-    apiCall(`/api/establecimientos/${id}/mesas`),
+  getTables: (id: string) => apiCall(`/api/establecimientos/${id}/mesas`),
 
   getReservations: (id: string, fecha: string) =>
     apiCall(`/api/establecimientos/${id}/reservas?fecha=${fecha}`),
