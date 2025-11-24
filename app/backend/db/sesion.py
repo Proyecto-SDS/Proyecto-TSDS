@@ -1,16 +1,20 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from config.config import Configuracion
+from sqlalchemy.orm import sessionmaker, scoped_session
+from .base import engine
 
-config = Configuracion()
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
-engine = create_engine(config.DATABASE_URL, future=True)
-
-SesionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+db_session = scoped_session(SessionLocal)
 
 def get_db():
-    db = SesionLocal()
+    db = db_session()
     try:
         yield db
     finally:
         db.close()
+        db_session.remove()
+
+__all__ = ("engine", "SessionLocal", "db_session", "get_db")

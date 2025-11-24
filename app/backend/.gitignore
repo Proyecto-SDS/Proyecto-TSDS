@@ -12,7 +12,7 @@ venv/
 
 # Archivos de configuracion locales
 *.env
-*.env.*
+alembic.ini
 
 # logs
 *.log

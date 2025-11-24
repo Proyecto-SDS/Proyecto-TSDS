@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from db.base import Base
 import enum 
 
-class Estado_Reserva_Mesa(enum.Enum):
+class EstadoReservaMesa(enum.Enum):
     ALTA = "alta"
     MEDIA = "media"
     BAJA = "baja"
@@ -16,7 +16,7 @@ class ReservaMesa(Base):
     id = Column(Integer, primary_key=True, index=False)
     id_reserva = Column(Integer, ForeignKey("reserva.id", ondelete="CASCADE"), nullable=False)
     id_mesa = Column(Integer, ForeignKey("mesa.id", ondelete="CASCADE"), nullable=False)
-    prioridad = Column(Enum(Estado_Reserva_Mesa, name= "estado_reserva_mesa_enum"), nullable=False)
+    prioridad = Column(Enum(EstadoReservaMesa, name= "estado_reserva_mesa_enum"), nullable=False)
 
     reserva = relationship("Reserva", back_populates="reserva_mesa",lazy="joined")
     mesa = relationship("Mesa", back_populates="reserva_mesa", lazy="joined")

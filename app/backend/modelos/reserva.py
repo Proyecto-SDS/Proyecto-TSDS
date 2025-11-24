@@ -10,7 +10,7 @@ class EstadoReservaEnum(enum.Enum):
     RECHAZADA = "rechazada"
 
 
-class Resrva(Base):
+class Reserva(Base):
 
     __tablename__ = "reserva"
 
@@ -26,7 +26,7 @@ class Resrva(Base):
     usuario = relationship("Usuario", back_populates="reserva", lazy="joined")
     local = relationship("Local", back_populates="reserva", lazy="joined")
     pago = relationship("Pago", back_populates="reserva", lazy="joined")
-    reserva_mesa = relationship("Reserva_mesa", back_populates="reserva", lazy="select")
+    reserva_mesa = relationship("ReservaMesa", back_populates="reserva", lazy="select")
 
     def __repr__(self):
         return f"<Reserva id={self.id} fecha_reserva={self.fecha_reserva} hora_reserva={self.hora_reserva} estado={self.estado.value}>"

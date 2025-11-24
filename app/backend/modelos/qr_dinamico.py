@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from db.base import Base
 
-class QR_Dinamico(Base):
+class QRDinamico(Base):
 
     __tablename__= "qr_dinamico"
 

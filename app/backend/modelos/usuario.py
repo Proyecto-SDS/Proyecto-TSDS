@@ -20,7 +20,7 @@ class Usuario(Base):
     favoritos = relationship("Favorito", back_populates="usuario", lazy="select")
     reservas = relationship("Reserva", back_populates="usuario", lazy="select")
     pedidos = relationship("Pedido", back_populates="usuario", lazy="select")
-    estados_pedido = relationship("Estado_Pedido", back_populates="creado_por_usuario", lazy="select")
+    estados_pedidos_creados = relationship("EstadoPedido", back_populates="creado_por_usuario", lazy="select")
 
     def __repr__(self):
         return f"<Usuario id={self.id} nombre='{self.nombre}' correo='{self.correo}'>"

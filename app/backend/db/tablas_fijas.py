@@ -1,12 +1,14 @@
-from db.sesion import SesionLocal
+import modelos
+
+from db.sesion import SessionLocal
 from modelos.rol import Rol
-from modelos.tipo_local import Tipo_Local
+from modelos.tipo_local import TipoLocal
 from modelos.comuna import Comuna
-from modelos.tipo_red import Tipo_Red
-from modelos.tipo_foto import Tipo_Foto
+from modelos.tipo_red import TipoRed
+from modelos.tipo_foto import TipoFoto
 
 def tablas_fijas():
-    db = SesionLocal()
+    db = SessionLocal()
     try:
 
         # Roles
@@ -19,11 +21,11 @@ def tablas_fijas():
             ])
 
         # Tipo_Local
-        if db.query(Tipo_Local).count() == 0:
+        if db.query(TipoLocal).count() == 0:
             db.add_all([
-                Tipo_Local(nombre="Restaurante"),
-                Tipo_Local(nombre="Bar"),
-                Tipo_Local(nombre="Cafetería"),
+                TipoLocal(nombre="Restaurante"),
+                TipoLocal(nombre="Bar"),
+                TipoLocal(nombre="Cafetería"),
             ])
 
         # Comunas
@@ -64,40 +66,43 @@ def tablas_fijas():
             ])
 
         # Tipo_Red
-        if db.query(Tipo_Red).count() == 0:
+        if db.query(TipoRed).count() == 0:
             db.add_all([
-                Tipo_Red(nombre="Sitio Web"),
-                Tipo_Red(nombre="Instagram"),
-                Tipo_Red(nombre="Facebook"),
-                Tipo_Red(nombre="TikTok"),
-                Tipo_Red(nombre="YouTube"),
-                Tipo_Red(nombre="X/Twitter"),
-                Tipo_Red(nombre="Whatsapp")
+                TipoRed(nombre="Sitio Web"),
+                TipoRed(nombre="Instagram"),
+                TipoRed(nombre="Facebook"),
+                TipoRed(nombre="TikTok"),
+                TipoRed(nombre="YouTube"),
+                TipoRed(nombre="X/Twitter"),
+                TipoRed(nombre="Whatsapp")
             ])
 
         # Tipo_Foto
-        if db.query(Tipo_Foto).count() == 0:
+        if db.query(TipoFoto).count() == 0:
             db.add_all([
                 # imagen
-                Tipo_Foto(nombre="banner"),
-                Tipo_Foto(nombre="hero"),
-                Tipo_Foto(nombre="icono"),
-                Tipo_Foto(nombre="logo"),
-                Tipo_Foto(nombre="promocion"),
+                TipoFoto(nombre="banner"),
+                TipoFoto(nombre="hero"),
+                TipoFoto(nombre="icono"),
+                TipoFoto(nombre="logo"),
+                TipoFoto(nombre="promocion"),
                 # producto
-                Tipo_Foto(nombre="producto"),
-                Tipo_Foto(nombre="ingredientes"),
-                Tipo_Foto(nombre="menu"),
+                TipoFoto(nombre="producto"),
+                TipoFoto(nombre="ingredientes"),
+                TipoFoto(nombre="menu"),
                 # local
-                Tipo_Foto(nombre="interior"),
-                Tipo_Foto(nombre="exterior"),
-                Tipo_Foto(nombre="fachada"),
-                Tipo_Foto(nombre="mesa"),
+                TipoFoto(nombre="interior"),
+                TipoFoto(nombre="exterior"),
+                TipoFoto(nombre="fachada"),
+                TipoFoto(nombre="mesa"),
                 # staff del local
-                Tipo_Foto(nombre="staff"),
+                TipoFoto(nombre="staff"),
             ])
 
         db.commit()
         
     finally:
         db.close()
+
+if __name__ == "__main__":
+    tablas_fijas()

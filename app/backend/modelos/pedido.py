@@ -24,13 +24,13 @@ class Pedido(Base):
     creado_el = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     actualizado_el = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
 
-    local = relationship("Local", back_populates="pedidos", lazy="joined")
-    mesa = relationship("Mesa", back_populates="pedidos", lazy="joined")
-    usuario = relationship("Usuario", back_populates="pedidos", lazy="joined")
+    local = relationship("Local", back_populates="pedido", lazy="joined")
+    mesa = relationship("Mesa", back_populates="pedido", lazy="joined")
+    usuario = relationship("Usuario", back_populates="pedido", lazy="joined")
     cuentas = relationship("Cuenta", back_populates="pedido", cascade="all, delete-orphan", lazy="select")
     pagos = relationship("Pago", back_populates="pedido", lazy="select")
     encomiendas = relationship("Encomienda", back_populates="pedido", lazy="select")
-    estados_pedido = relationship("Estado_Pedido", back_populates="pedido", lazy="select")
+    estado_pedido = relationship("EstadoPedido", back_populates="pedido", lazy="select")
 
     def __repr__(self):
         return f"<Pedido id={self.id} local={self.local_id} mesa={self.mesa_id} usuario={self.usuario_id} estado={self.estado} total={self.total}>"

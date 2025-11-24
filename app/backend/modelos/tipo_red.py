@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from db import Base
+from db.base import Base
 
-class Tipo_Red(Base):
+class TipoRed(Base):
 
     __tablename__= "tipo_red"
 

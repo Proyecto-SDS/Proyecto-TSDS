@@ -14,10 +14,10 @@ class Foto(Base):
     ruta = Column(Text, nullable=False)
 
     # Relaciones
-    local = relationship("Local", back_populates="fotos", lazy="joined")
-    producto = relationship("Producto", back_populates="fotos", lazy="joined")
-    categoria = relationship("Categoria", back_populates="fotos", lazy="joined")
-    tipo_foto = relationship("TipoFoto", back_populates="fotos", lazy="joined")
+    local = relationship("Local", back_populates="foto", lazy="joined")
+    producto = relationship("Producto", back_populates="foto", lazy="joined")
+    categoria = relationship("Categoria", back_populates="foto", lazy="joined")
+    tipo_foto = relationship("TipoFoto", back_populates="foto", lazy="joined")
     redes = relationship("Redes", back_populates="foto", lazy="select")
 
     def __repr__(self):

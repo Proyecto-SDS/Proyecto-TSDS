@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from db.base import Base
@@ -22,7 +22,7 @@ class Encomienda(Base):
 
     # Relaciones
     pedido = relationship("Pedido", back_populates="encomiendas", lazy="joined")
-    cuentas_encomienda = relationship("Encomienda_Cuenta", back_populates="encomienda", lazy="select")
+    cuentas_encomienda = relationship("EncomiendaCuenta", back_populates="encomienda", lazy="select")
 
     def __repr__(self):
         return f"<Encomienda id={self.id} estado={self.estado} pedido={self.id_pedido}>"
