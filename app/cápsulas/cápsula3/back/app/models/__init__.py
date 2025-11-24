@@ -7,6 +7,8 @@ los reconozca automáticamente.
 
 from app import db
 from datetime import datetime
+from sqlalchemy import event
+from geoalchemy2 import Geography, WKTElement
 
 # Tablas independientes (sin llaves foráneas)
 
@@ -72,12 +74,30 @@ class Direccion(db.Model):
     numero = db.Column(db.Integer)
     longitud = db.Column(db.Numeric)
     latitud = db.Column(db.Numeric)
+    geom = db.Column(Geography(geometry_type='POINT', srid=4326))
     
     # Relaciones
     locales = db.relationship('Local', backref='direccion', lazy=True)
     
     def __repr__(self):
         return f'<Direccion {self.id}>'
+
+
+@event.listens_for(Direccion, 'before_insert')
+@event.listens_for(Direccion, 'before_update')
+def _direccion_set_geom(mapper, connection, target):
+    """Asegura que la columna `geom` se mantenga coherente con latitud/longitud.
+
+    Se asigna un WKTElement para que GeoAlchemy lo procese apropiadamente.
+    """
+    try:
+        if target.longitud is not None and target.latitud is not None:
+            lon = float(target.longitud)
+            lat = float(target.latitud)
+            target.geom = WKTElement(f'POINT({lon} {lat})', srid=4326)
+    except Exception:
+        # No fallar la operación de persistencia por problemas en los valores
+        target.geom = None
 
 
 class Usuario(db.Model):

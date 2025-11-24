@@ -1,4 +1,9 @@
 -- 1. Tablas independientes (sin llaves foráneas)
+-- Habilitar PostGIS (si la base de datos PostgreSQL lo soporta)
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Nota: Esta versión del esquema añade una columna `geom` (geography POINT)
+-- en la tabla `direccion` y crea un índice GiST para consultas espaciales.
 
 CREATE TABLE rol (
     id SERIAL PRIMARY KEY,
@@ -28,6 +33,7 @@ CREATE TABLE direccion (
     numero INT,
     longitud DECIMAL,
     latitud DECIMAL,
+    geom geography(POINT,4326),
     CONSTRAINT fk_direccion_comuna FOREIGN KEY (id_comuna) REFERENCES comuna(id)
 );
 
@@ -226,3 +232,15 @@ CREATE TABLE encomienda_cuenta (
     CONSTRAINT fk_encomienda_cuenta_cuenta FOREIGN KEY (id_cuenta) REFERENCES cuenta(id),
     CONSTRAINT fk_encomienda_cuenta_encomienda FOREIGN KEY (id_encomienda) REFERENCES encomienda(id)
 );
+
+-- Poblar la columna geom desde latitud/longitud y crear índice GiST
+-- Ejecutar estas sentencias una sola vez después de haber migrado el esquema
+-- (las funciones asumen que latitud y longitud están en formato decimal).
+
+-- Actualizar geom a partir de lat/long
+UPDATE direccion
+SET geom = ST_SetSRID(ST_MakePoint(longitud::double precision, latitud::double precision), 4326)::geography
+WHERE longitud IS NOT NULL AND latitud IS NOT NULL;
+
+-- Crear índice geoespacial para búsquedas por distancia
+CREATE INDEX IF NOT EXISTS idx_direccion_geom ON direccion USING GIST(geom);
