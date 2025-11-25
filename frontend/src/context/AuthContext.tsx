@@ -15,10 +15,21 @@ interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  login: (correo: string, contrasena: string) => Promise<{ success: boolean; error?: string }>;
-  register: (nombre: string, correo: string, telefono: string, contrasena: string) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    correo: string,
+    contrasena: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    nombre: string,
+    correo: string,
+    telefono: string,
+    contrasena: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  updateProfile: (nombre: string, telefono: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (
+    nombre: string,
+    telefono: string
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,9 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing auth token on mount
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('auth_user');
-    
+
     if (token && storedUser) {
       try {
         const userData = JSON.parse(storedUser);
@@ -52,11 +68,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('auth_user');
       }
     }
-    
+
     setIsLoading(false);
   }, []);
 
-  const login = async (correo: string, contrasena: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    correo: string,
+    contrasena: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       // Mock API call - replace with real API
       // const res = await fetch('/api/login', {
@@ -64,9 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ correo, contrasena }),
       // });
-      
+
       // Mock authentication - hardcoded for demo
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
 
       if (correo === 'demo@reservaya.cl' && contrasena === 'demo123') {
         const mockUser: User = {
@@ -79,20 +98,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         const mockToken = 'mock_jwt_token_' + Date.now();
-        
-        localStorage.setItem('auth_token', mockToken);
-        localStorage.setItem('auth_user', JSON.stringify(mockUser));
-        
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', mockToken);
+          localStorage.setItem('auth_user', JSON.stringify(mockUser));
+        }
+
         setUser(mockUser);
         setIsLoggedIn(true);
-        
+
         return { success: true };
       } else {
         return { success: false, error: 'Correo o contraseña incorrectos' };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Error al iniciar sesión. Intenta nuevamente.' };
+      return {
+        success: false,
+        error: 'Error al iniciar sesión. Intenta nuevamente.',
+      };
     }
   };
 
@@ -109,9 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ nombre, correo, telefono, contrasena }),
       // });
-      
+
       // Mock registration
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
 
       // Check if email already exists (mock check)
       const existingEmails = ['existente@example.com'];
@@ -122,18 +146,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: true };
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, error: 'Error al crear la cuenta. Intenta nuevamente.' };
+      return {
+        success: false,
+        error: 'Error al crear la cuenta. Intenta nuevamente.',
+      };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+    }
     setUser(null);
     setIsLoggedIn(false);
   };
 
-  const updateProfile = async (nombre: string, telefono: string): Promise<{ success: boolean; error?: string }> => {
+  const updateProfile = async (
+    nombre: string,
+    telefono: string
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       // Mock API call - replace with real API
       // const token = localStorage.getItem('auth_token');
@@ -146,11 +178,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       //   body: JSON.stringify({ nombre, telefono }),
       // });
 
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       if (user) {
         const updatedUser = { ...user, nombre, telefono };
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        }
         setUser(updatedUser);
         return { success: true };
       }

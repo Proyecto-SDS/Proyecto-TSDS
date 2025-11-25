@@ -8,11 +8,13 @@ interface ApiCallOptions extends RequestInit {
 }
 
 export async function apiCall(endpoint: string, options: ApiCallOptions = {}) {
-  const token = options.token || localStorage.getItem('auth_token');
+  const token =
+    options.token ||
+    (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null);
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (token) {
