@@ -532,7 +532,6 @@ class Reserva(Base):
     usuario = relationship("Usuario", back_populates="reservas", lazy="joined")
     local = relationship("Local", back_populates="reservas", lazy="joined")
     reservas_mesa = relationship("ReservaMesa", back_populates="reserva", lazy="select", cascade="all, delete-orphan")
-    pagos = relationship("Pago", back_populates="reserva", lazy="select")
 
 class ReservaMesa(Base):
     __tablename__ = "reserva_mesa"
@@ -650,7 +649,6 @@ class Pago(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     pedido_id = Column(Integer, ForeignKey("pedido.id", ondelete="SET NULL"), nullable=True, index=True)
-    reserva_id = Column(Integer, ForeignKey("reserva.id", ondelete="SET NULL"), nullable=True, index=True)
     metodo = Column(Enum(MetodoPagoEnum, name="metodo_pago_enum"), nullable=False)
     estado = Column(Enum(EstadoPagoEnum, name="estado_pago_enum"), nullable=False, default=EstadoPagoEnum.PENDIENTE)
     monto = Column(Integer, nullable=False)
@@ -658,7 +656,6 @@ class Pago(Base):
     actualizado_el = Column(DateTime(timezone=True), onupdate=func.now())
     
     pedido = relationship("Pedido", back_populates="pagos", lazy="joined")
-    reserva = relationship("Reserva", back_populates="pagos", lazy="joined")
 
 # ============================================
 # SCHEMAS PYDANTIC V2
@@ -721,7 +718,6 @@ class PagoSchema(BaseModel):
     metodo: MetodoPagoEnum
     estado: EstadoPagoEnum
     pedido_id: Optional[int] = None
-    reserva_id: Optional[int] = None
 
     class Config:
         from_attributes = True

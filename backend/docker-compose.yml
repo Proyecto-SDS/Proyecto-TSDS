@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: "${POSTGRES_DB}"
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      TZ: America/Santiago
     ports:
       - "5432:5432"
     volumes:
@@ -31,6 +32,7 @@ services:
       DB_NAME: "${POSTGRES_DB}"
       DB_PORT: 5432
       PYTHONPATH: /app/src
+      TZ: America/Santiago
     depends_on:
       db:
         condition: service_healthy
@@ -53,6 +55,7 @@ services:
       DB_NAME: "${POSTGRES_DB}"
       DB_PORT: 5432
       PYTHONPATH: /app/src
+      TZ: America/Santiago
     depends_on:
       db:
         condition: service_healthy
@@ -77,6 +80,7 @@ services:
       DB_NAME: "${POSTGRES_DB}"
       DB_PORT: 5432
       PYTHONPATH: /app/src
+      TZ: America/Santiago
     depends_on:
       db:
         condition: service_healthy
