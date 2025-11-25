@@ -415,50 +415,57 @@ function Sidebar({
               <div
                 key={est.id}
                 ref={selectedId === est.id ? selectedRef : null}
-                onClick={() => onSelectEstablishment(est.id)}
                 className={`
-                  p-3 border rounded-xl cursor-pointer transition-all
-                  hover:shadow-md hover:-translate-y-0.5
+                  border rounded-xl overflow-hidden transition-all
+                  hover:shadow-lg hover:-translate-y-1
                   ${
                     selectedId === est.id
-                      ? 'border-[#F97316] bg-[#F97316]/5'
-                      : 'border-[#E2E8F0] hover:border-[#F97316]'
+                      ? 'border-[#F97316] bg-linear-to-br from-[#FFF7ED] to-[#FFEDD5] shadow-md'
+                      : 'border-[#E2E8F0] bg-white hover:border-[#F97316]'
                   }
                 `}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-sm text-[#334155] line-clamp-1 flex-1">
-                    {est.name}
-                  </h4>
-                  <StatusBadge
-                    status={est.status}
-                    closingTime={est.closingTime}
-                  />
-                </div>
+                {/* Área clickeable para centrar mapa */}
+                <button
+                  onClick={() => onSelectEstablishment(est.id)}
+                  className="w-full p-3 text-left hover:bg-white/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-sm font-semibold text-[#334155] line-clamp-1 flex-1">
+                      {est.name}
+                    </h4>
+                    <StatusBadge
+                      status={est.status}
+                      closingTime={est.closingTime}
+                    />
+                  </div>
 
-                <div className="flex items-center gap-2 mb-2">
-                  <TypeBadge type={est.type} />
-                  {est.rating && (
-                    <div className="flex items-center gap-1 text-xs text-[#64748B]">
-                      <Star
-                        size={12}
-                        className="fill-[#F97316] text-[#F97316]"
-                      />
-                      <span>{est.rating}</span>
-                    </div>
-                  )}
-                </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <TypeBadge type={est.type} />
+                    {est.rating && (
+                      <div className="flex items-center gap-1 text-xs text-[#64748B]">
+                        <Star
+                          size={12}
+                          className="fill-[#F97316] text-[#F97316]"
+                        />
+                        <span className="font-medium">{est.rating}</span>
+                      </div>
+                    )}
+                  </div>
 
-                <p className="text-xs text-[#64748B]">{est.commune}</p>
+                  <p className="text-xs text-[#64748B]">{est.commune}</p>
+                </button>
 
+                {/* Botón para navegar al perfil */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/establecimiento/${est.id}`);
+                    router.push(`/establecimientos/${est.id}`);
                   }}
-                  className="mt-2 w-full text-xs text-[#F97316] hover:text-[#EA580C] transition-colors"
+                  className="w-full px-3 py-2 text-xs font-medium text-[#F97316] hover:text-[#EA580C] hover:bg-[#F97316]/5 transition-colors flex items-center justify-center gap-1 border-t border-[#E2E8F0]"
                 >
-                  Ver perfil →
+                  <span>Ver local</span>
+                  <span className="text-sm">→</span>
                 </button>
               </div>
             ))}
@@ -573,52 +580,59 @@ function MobileDrawer({
                 <div
                   key={est.id}
                   ref={selectedId === est.id ? selectedRef : null}
-                  onClick={() => {
-                    onSelectEstablishment(est.id);
-                    onClose();
-                  }}
                   className={`
-                    p-3 border rounded-xl cursor-pointer transition-all
+                    border rounded-xl overflow-hidden transition-all
                     ${
                       selectedId === est.id
-                        ? 'border-[#F97316] bg-[#F97316]/5'
-                        : 'border-[#E2E8F0]'
+                        ? 'border-[#F97316] bg-linear-to-br from-[#FFF7ED] to-[#FFEDD5] shadow-md'
+                        : 'border-[#E2E8F0] bg-white'
                     }
                   `}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-sm text-[#334155] line-clamp-1 flex-1">
-                      {est.name}
-                    </h4>
-                    <StatusBadge
-                      status={est.status}
-                      closingTime={est.closingTime}
-                    />
-                  </div>
+                  {/* Área clickeable para centrar mapa y cerrar drawer */}
+                  <button
+                    onClick={() => {
+                      onSelectEstablishment(est.id);
+                      onClose();
+                    }}
+                    className="w-full p-3 text-left active:bg-white/50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-sm font-semibold text-[#334155] line-clamp-1 flex-1">
+                        {est.name}
+                      </h4>
+                      <StatusBadge
+                        status={est.status}
+                        closingTime={est.closingTime}
+                      />
+                    </div>
 
-                  <div className="flex items-center gap-2 mb-2">
-                    <TypeBadge type={est.type} />
-                    {est.rating && (
-                      <div className="flex items-center gap-1 text-xs text-[#64748B]">
-                        <Star
-                          size={12}
-                          className="fill-[#F97316] text-[#F97316]"
-                        />
-                        <span>{est.rating}</span>
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <TypeBadge type={est.type} />
+                      {est.rating && (
+                        <div className="flex items-center gap-1 text-xs text-[#64748B]">
+                          <Star
+                            size={12}
+                            className="fill-[#F97316] text-[#F97316]"
+                          />
+                          <span className="font-medium">{est.rating}</span>
+                        </div>
+                      )}
+                    </div>
 
-                  <p className="text-xs text-[#64748B]">{est.commune}</p>
+                    <p className="text-xs text-[#64748B]">{est.commune}</p>
+                  </button>
 
+                  {/* Botón para navegar al perfil */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/establecimiento/${est.id}`);
+                      router.push(`/establecimientos/${est.id}`);
                     }}
-                    className="mt-2 w-full text-xs text-[#F97316] hover:text-[#EA580C]"
+                    className="w-full px-3 py-2 text-xs font-medium text-[#F97316] active:text-[#EA580C] active:bg-[#F97316]/10 transition-colors flex items-center justify-center gap-1 border-t border-[#E2E8F0]"
                   >
-                    Ver perfil →
+                    <span>Ver local</span>
+                    <span className="text-sm">→</span>
                   </button>
                 </div>
               ))}

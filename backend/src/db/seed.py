@@ -162,11 +162,11 @@ def seed_database():
         # Direcciones de ejemplo
         if db.query(Direccion).count() == 0:
             print("  → Insertando Direcciones de ejemplo...")
-            dir1 = Direccion(id_comuna=1, numero=123, longitud=-70.64827, latitud=-33.45694)
-            dir2 = Direccion(id_comuna=23, numero=456, longitud=-70.61203, latitud=-33.4314)
-            dir3 = Direccion(id_comuna=14, numero=789, longitud=-70.5679, latitud=-33.4132)
-            dir4 = Direccion(id_comuna=1, numero=101, longitud=-70.6506, latitud=-33.4378)
-            dir5 = Direccion(id_comuna=23, numero=202, longitud=-70.605, latitud=-33.426)
+            dir1 = Direccion(id_comuna=1, calle="Av. Libertador Bernardo O'Higgins", numero=123, longitud=-70.64827, latitud=-33.45694)
+            dir2 = Direccion(id_comuna=23, calle="Av. Providencia", numero=456, longitud=-70.61203, latitud=-33.4314)
+            dir3 = Direccion(id_comuna=14, calle="Av. Apoquindo", numero=789, longitud=-70.5679, latitud=-33.4132)
+            dir4 = Direccion(id_comuna=1, calle="Calle Moneda", numero=101, longitud=-70.6506, latitud=-33.4378)
+            dir5 = Direccion(id_comuna=23, calle="Av. General Bustamante", numero=202, longitud=-70.605, latitud=-33.426)
             db.add_all([dir1, dir2, dir3, dir4, dir5])
             db.commit()
             print("    ✓ Direcciones de ejemplo insertadas")
@@ -176,11 +176,46 @@ def seed_database():
         # Locales de ejemplo
         if db.query(Local).count() == 0:
             print("  → Insertando Locales de ejemplo...")
-            local1 = Local(id_direccion=1, id_tipo_local=1, nombre="El Gran Sabor", telefono=123456789, correo="contacto@gransabor.cl")
-            local2 = Local(id_direccion=2, id_tipo_local=2, nombre="Bar La Terraza", telefono=987654321, correo="reservas@laterraza.cl")
-            local3 = Local(id_direccion=3, id_tipo_local=3, nombre="Restobar del Parque", telefono=555666777, correo="info@restobarparque.com")
-            local4 = Local(id_direccion=4, id_tipo_local=1, nombre="Rincón Peruano", telefono=111222333, correo="contacto@rinconperuano.cl")
-            local5 = Local(id_direccion=5, id_tipo_local=2, nombre="The Old Pub", telefono=444555666, correo="contact@theoldpub.com")
+            local1 = Local(
+                id_direccion=1, 
+                id_tipo_local=1, 
+                nombre="El Gran Sabor", 
+                descripcion="Restaurante de comida chilena tradicional con ambiente familiar. Especialidad en platos típicos y carnes a la parrilla.",
+                telefono=123456789, 
+                correo="contacto@gransabor.cl"
+            )
+            local2 = Local(
+                id_direccion=2, 
+                id_tipo_local=2, 
+                nombre="Bar La Terraza", 
+                descripcion="Bar con terraza al aire libre, ideal para después de la oficina. Amplia carta de cervezas artesanales y cócteles.",
+                telefono=987654321, 
+                correo="reservas@laterraza.cl"
+            )
+            local3 = Local(
+                id_direccion=3, 
+                id_tipo_local=3, 
+                nombre="Restobar del Parque", 
+                descripcion="Restobar moderno con música en vivo los fines de semana. Fusión de cocina internacional y bar de tragos premium.",
+                telefono=555666777, 
+                correo="info@restobarparque.com"
+            )
+            local4 = Local(
+                id_direccion=4, 
+                id_tipo_local=1, 
+                nombre="Rincón Peruano", 
+                descripcion="Auténtica comida peruana en el corazón de Santiago. Especialidad en ceviches, tiraditos y causas limeñas.",
+                telefono=111222333, 
+                correo="contacto@rinconperuano.cl"
+            )
+            local5 = Local(
+                id_direccion=5, 
+                id_tipo_local=2, 
+                nombre="The Old Pub", 
+                descripcion="Pub estilo inglés con ambiente acogedor. Amplia selección de cervezas importadas y comida de pub clásica.",
+                telefono=444555666, 
+                correo="contact@theoldpub.com"
+            )
             db.add_all([local1, local2, local3, local4, local5])
             db.commit()
             print("    ✓ Locales de ejemplo insertados")

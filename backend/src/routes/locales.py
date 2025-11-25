@@ -75,8 +75,9 @@ def obtener_locales():
             local_data = {
                 'id': str(local.id),
                 'name': local.nombre,
+                'description': local.descripcion,
                 'type': local.tipo_local.nombre if local.tipo_local else 'Restaurante',
-                'address': f"{local.direccion.numero}" if local.direccion else '',
+                'address': f"{local.direccion.calle} {local.direccion.numero}" if local.direccion and local.direccion.calle else '',
                 'commune': local.direccion.comuna.nombre if local.direccion and local.direccion.comuna else '',
                 'phone': f"+56{local.telefono}",
                 'email': local.correo,
@@ -213,8 +214,9 @@ def obtener_local(id):
         local_data = {
             'id': str(local.id),
             'name': local.nombre,
+            'description': local.descripcion,
             'type': local.tipo_local.nombre if local.tipo_local else 'Restaurante',
-            'address': f"{local.direccion.numero}" if local.direccion else '',
+            'address': f"{local.direccion.calle} {local.direccion.numero}" if local.direccion and local.direccion.calle else '',
             'commune': local.direccion.comuna.nombre if local.direccion and local.direccion.comuna else '',
             'phone': f"+56{local.telefono}",
             'email': local.correo,

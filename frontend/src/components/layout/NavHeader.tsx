@@ -1,18 +1,15 @@
 'use client';
 
-import { LogOut, MapPin, Menu, User, X } from 'lucide-react';
+import { LogOut, Menu, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { SANTIAGO_COMMUNES } from '../../utils/constants';
-import { SelectDropdown } from '../inputs/SelectDropdown';
 
 export function NavHeader() {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [selectedCommune, setSelectedCommune] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -24,11 +21,6 @@ export function NavHeader() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const communeOptions = SANTIAGO_COMMUNES.map((commune) => ({
-    value: commune,
-    label: commune,
-  }));
 
   const handleLogout = () => {
     logout();
@@ -70,24 +62,7 @@ export function NavHeader() {
             </span>
           </Link>
 
-          {/* Center - Location Filter (Desktop) - Only on home page */}
-          {pathname === '/' && (
-            <div className="hidden md:block flex-1 max-w-xs">
-              <div className="relative">
-                <MapPin
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none z-10"
-                  size={18}
-                />
-                <SelectDropdown
-                  options={communeOptions}
-                  placeholder="¿Dónde?"
-                  value={selectedCommune}
-                  onChange={setSelectedCommune}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          )}
+          <div className="flex-1" />
 
           {/* Right - User Menu (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
@@ -138,26 +113,6 @@ export function NavHeader() {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-[#E2E8F0] space-y-4">
-            {/* Location Filter - Only on home page */}
-            {pathname === '/' && (
-              <div className="relative">
-                <MapPin
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none z-10"
-                  size={18}
-                />
-                <SelectDropdown
-                  options={communeOptions}
-                  placeholder="¿Dónde?"
-                  value={selectedCommune}
-                  onChange={(value) => {
-                    setSelectedCommune(value);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="pl-10"
-                />
-              </div>
-            )}
-
             {/* User Menu */}
             {isLoggedIn && user ? (
               <>

@@ -338,6 +338,7 @@ class Direccion(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     id_comuna = Column(Integer, ForeignKey("comuna.id", ondelete="SET NULL"), nullable=True, index=True)
+    calle = Column(String(200), nullable=False)
     numero = Column(Integer, nullable=False)
     longitud = Column(Numeric, nullable=False)
     latitud = Column(Numeric, nullable=False)
@@ -356,6 +357,7 @@ class Local(Base):
     id_direccion = Column(Integer, ForeignKey("direccion.id", ondelete="CASCADE"), nullable=False, index=True)
     id_tipo_local = Column(Integer, ForeignKey("tipo_local.id", ondelete="CASCADE"), nullable=False, index=True)
     nombre = Column(String(200), nullable=False)
+    descripcion = Column(Text, nullable=True)
     telefono = Column(Integer, nullable=False)
     correo = Column(String(50), nullable=False, unique=True, index=True)
     
