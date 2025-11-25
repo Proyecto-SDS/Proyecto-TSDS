@@ -15,6 +15,13 @@ import { ESTABLISHMENT_TYPES } from '../utils/constants';
 // Configurar token de Mapbox
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 
+// Validar token de Mapbox
+if (!mapboxgl.accessToken) {
+  console.error('⚠️ MAPBOX TOKEN NO CONFIGURADO');
+} else {
+  console.log('✅ Mapbox token configurado correctamente');
+}
+
 // Map center: Santiago, Chile
 const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489]; // [lng, lat]
 const DEFAULT_ZOOM = 12;
@@ -96,128 +103,173 @@ function SimpleMap({
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: SANTIAGO_CENTER,
-      zoom: DEFAULT_ZOOM,
-      maxBounds: SANTIAGO_BOUNDS, // Restricts map to Santiago area
-      minZoom: 10, // Prevent zooming out too far
-      maxZoom: 18, // Allow detailed street view
-    });
+    // Esperar un momento para asegurar que el contenedor tenga dimensiones
+    const initMap = () => {
+      if (!mapContainer.current) return;
 
-    // Add navigation controls
-    mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      console.log('🗺️ Inicializando mapa Mapbox...');
 
-    // Wait for the style to load before hiding unwanted layers
-    mapRef.current.on('load', () => {
-      if (!mapRef.current) return;
-
-      // Get all layers from the style
-      const layers = mapRef.current.getStyle().layers;
-
-      if (!layers) return;
-
-      // LOG: Uncomment to see all available layer IDs in the console
-      // This helps you identify which layers to hide
-      // console.log('Available layers:', layers.map(l => ({ id: l.id, type: l.type })));
-
-      // Hide specific POI (Points of Interest) labels and icons
-      layers.forEach((layer) => {
-        // Hide only RESTAURANT and SHOP POI labels
-        // Keep: parks, transit, airports, cultural sites, education, religion
-        if (layer.id.includes('poi-label')) {
-          const layerId = layer.id.toLowerCase();
-
-          // List of POI types to KEEP visible:
-          const keepVisible = [
-            'park', // Parques
-            'natural', // Áreas naturales
-            'recreation', // Áreas recreativas
-            'transit', // Transporte público
-            'airport', // Aeropuertos
-            'station', // Estaciones
-            'museum', // Museos
-            'theatre', // Teatros
-            'theater', // Teatros (variación)
-            'gallery', // Galerías
-            'cultural', // Lugares culturales
-            'monument', // Monumentos
-            'memorial', // Memoriales
-            'historic', // Lugares históricos
-            'education', // Educación
-            'school', // Escuelas
-            'university', // Universidades
-            'library', // Bibliotecas
-            'religious', // Lugares religiosos
-            'church', // Iglesias
-            'temple', // Templos
-            'worship', // Lugares de culto
-          ];
-
-          // Check if this POI should be kept visible
-          const shouldKeep = keepVisible.some((keyword) =>
-            layerId.includes(keyword)
-          );
-
-          // Hide only if it's NOT in our keep list (i.e., hide restaurants/shops)
-          if (!shouldKeep) {
-            mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-          }
-        }
-
-        // NOTE: We now KEEP transit and airport labels visible
-        // The code below is commented out - they are visible by default
-        // if (
-        //   layer.id.includes('transit-label') ||
-        //   layer.id.includes('airport-label')
-        // ) {
-        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        // }
-
-        // Hide place labels (neighborhoods, suburbs) but keep city/country names
-        if (
-          layer.id.includes('place-label') &&
-          (layer.id.includes('neighbourhood') || layer.id.includes('suburb'))
-        ) {
-          mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        }
-
-        // Hide building labels
-        if (layer.id.includes('building-number-label')) {
-          mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        }
-
-        // Optionally: Hide 3D buildings if they interfere
-        // Uncomment if you want to remove 3D buildings
-        // if (layer.id.includes('building') && layer.type === 'fill-extrusion') {
-        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        // }
-
-        // Optionally: Hide road labels (street names)
-        // Uncomment if you want cleaner streets without names
-        // if (layer.id.includes('road-label')) {
-        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        // }
-
-        // Optionally: Hide water labels (lake/river names)
-        // if (layer.id.includes('water-label') || layer.id.includes('waterway-label')) {
-        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
-        // }
+      mapRef.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: SANTIAGO_CENTER,
+        zoom: DEFAULT_ZOOM,
+        maxBounds: SANTIAGO_BOUNDS, // Restricts map to Santiago area
+        minZoom: 10, // Prevent zooming out too far
+        maxZoom: 18, // Allow detailed street view
       });
 
-      console.log(
-        '✅ Map loaded. Only restaurant/shop POI hidden. Transit, airports & culture visible.'
-      );
-      console.log('📍 Map bounds:', SANTIAGO_BOUNDS);
-      console.log(
-        '🎭 Visible: Transit, Airports, Museums, Parks, Cultural sites'
-      );
-    });
+      // Forzar resize después de un breve momento
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.resize();
+          console.log('✅ Mapa redimensionado');
+        }
+      }, 100);
+
+      // Add navigation controls
+      if (mapRef.current) {
+        mapRef.current.addControl(
+          new mapboxgl.NavigationControl(),
+          'top-right'
+        );
+
+        // Wait for the style to load before hiding unwanted layers
+        mapRef.current.on('load', () => {
+          if (!mapRef.current) return;
+
+          console.log('🎨 Estilo del mapa cargado');
+
+          // Forzar resize del mapa para asegurar renderizado correcto
+          mapRef.current.resize();
+          console.log('✅ Mapa redimensionado después de cargar estilo');
+
+          // Get all layers from the style
+          const layers = mapRef.current.getStyle().layers;
+
+          if (!layers) return;
+
+          // LOG: Uncomment to see all available layer IDs in the console
+          // This helps you identify which layers to hide
+          // console.log('Available layers:', layers.map(l => ({ id: l.id, type: l.type })));
+
+          // Hide specific POI (Points of Interest) labels and icons
+          layers.forEach((layer) => {
+            // Hide only RESTAURANT and SHOP POI labels
+            // Keep: parks, transit, airports, cultural sites, education, religion
+            if (layer.id.includes('poi-label')) {
+              const layerId = layer.id.toLowerCase();
+
+              // List of POI types to KEEP visible:
+              const keepVisible = [
+                'park', // Parques
+                'natural', // Áreas naturales
+                'recreation', // Áreas recreativas
+                'transit', // Transporte público
+                'airport', // Aeropuertos
+                'station', // Estaciones
+                'museum', // Museos
+                'theatre', // Teatros
+                'theater', // Teatros (variación)
+                'gallery', // Galerías
+                'cultural', // Lugares culturales
+                'monument', // Monumentos
+                'memorial', // Memoriales
+                'historic', // Lugares históricos
+                'education', // Educación
+                'school', // Escuelas
+                'university', // Universidades
+                'library', // Bibliotecas
+                'religious', // Lugares religiosos
+                'church', // Iglesias
+                'temple', // Templos
+                'worship', // Lugares de culto
+              ];
+
+              // Check if this POI should be kept visible
+              const shouldKeep = keepVisible.some((keyword) =>
+                layerId.includes(keyword)
+              );
+
+              // Hide only if it's NOT in our keep list (i.e., hide restaurants/shops)
+              if (!shouldKeep) {
+                mapRef.current?.setLayoutProperty(
+                  layer.id,
+                  'visibility',
+                  'none'
+                );
+              }
+            }
+
+            // NOTE: We now KEEP transit and airport labels visible
+            // The code below is commented out - they are visible by default
+            // if (
+            //   layer.id.includes('transit-label') ||
+            //   layer.id.includes('airport-label')
+            // ) {
+            //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            // }
+
+            // Hide place labels (neighborhoods, suburbs) but keep city/country names
+            if (
+              layer.id.includes('place-label') &&
+              (layer.id.includes('neighbourhood') ||
+                layer.id.includes('suburb'))
+            ) {
+              mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+
+            // Hide building labels
+            if (layer.id.includes('building-number-label')) {
+              mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+
+            // Optionally: Hide 3D buildings if they interfere
+            // Uncomment if you want to remove 3D buildings
+            // if (layer.id.includes('building') && layer.type === 'fill-extrusion') {
+            //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            // }
+
+            // Optionally: Hide road labels (street names)
+            // Uncomment if you want cleaner streets without names
+            // if (layer.id.includes('road-label')) {
+            //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            // }
+
+            // Optionally: Hide water labels (lake/river names)
+            // if (layer.id.includes('water-label') || layer.id.includes('waterway-label')) {
+            //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            // }
+          });
+
+          console.log(
+            '✅ Map loaded. Only restaurant/shop POI hidden. Transit, airports & culture visible.'
+          );
+          console.log('📍 Map bounds:', SANTIAGO_BOUNDS);
+          console.log(
+            '🎭 Visible: Transit, Airports, Museums, Parks, Cultural sites'
+          );
+
+          // Resize final después de que todo esté configurado
+          setTimeout(() => {
+            if (mapRef.current) {
+              mapRef.current.resize();
+              console.log('✅ Resize final aplicado');
+            }
+          }, 200);
+        });
+      }
+    };
+
+    // Pequeño delay para asegurar que el DOM esté listo
+    const timer = setTimeout(initMap, 50);
 
     return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
+      clearTimeout(timer);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
