@@ -18,6 +18,48 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 const SANTIAGO_CENTER: [number, number] = [-70.6693, -33.4489]; // [lng, lat]
 const DEFAULT_ZOOM = 12;
 
+// Santiago bounds - Límites geográficos de Santiago y sus comunas
+// Southwest corner: Maipú/Cerrillos area
+// Northeast corner: Las Condes/Lo Barnechea area
+const SANTIAGO_BOUNDS: mapboxgl.LngLatBoundsLike = [
+  [-70.9, -33.7], // Southwest [lng, lat]
+  [-70.4, -33.3], // Northeast [lng, lat]
+];
+
+/**
+ * PERSONALIZACIÓN DEL MAPA MAPBOX
+ *
+ * Elementos ocultos actualmente:
+ * - POI labels específicos: SOLO restaurantes y tiendas comerciales de Mapbox
+ * - Neighbourhood/suburb labels (barrios)
+ * - Building number labels (números de edificios)
+ *
+ * Elementos que se mantienen visibles:
+ * ✅ Transporte: Metro, buses, estaciones de tren
+ * ✅ Aeropuertos y terminales
+ * ✅ Lugares culturales: Museos, teatros, monumentos, galerías
+ * ✅ Parques y áreas verdes
+ * ✅ Lugares educativos y religiosos
+ * ✅ Calles y carreteras (navegación)
+ * ✅ Nombres de ciudades y países
+ * ✅ Agua (ríos, lagos)
+ * ✅ Tus marcadores personalizados
+ *
+ * Límites del mapa:
+ * - Restringido a Santiago y sus comunas
+ * - El usuario no puede hacer pan fuera de estos límites
+ *
+ * Para ocultar más elementos, busca los layer IDs comunes:
+ * - 'road-label': etiquetas de calles
+ * - 'water-label': etiquetas de cuerpos de agua
+ * - 'natural-label': etiquetas de elementos naturales
+ * - 'building': edificios en 2D
+ * - 'building-extrusion': edificios en 3D
+ *
+ * Puedes inspeccionar todos los layers disponibles en la consola
+ * cuando el mapa cargue.
+ */
+
 // Mock data with real Santiago coordinates
 const MOCK_ESTABLISHMENTS: Establishment[] = [
   {
@@ -128,14 +170,14 @@ const MOCK_ESTABLISHMENTS: Establishment[] = [
 // Approximate coordinates for Santiago communes
 const COMMUNE_COORDINATES: Record<string, [number, number]> = {
   'Santiago Centro': [-70.6506, -33.4372],
-  'Providencia': [-70.6100, -33.4264],
+  Providencia: [-70.61, -33.4264],
   'Las Condes': [-70.5833, -33.4167],
-  'Vitacura': [-70.5667, -33.3833],
-  'Ñuñoa': [-70.5978, -33.4564],
-  'Maipú': [-70.7667, -33.5167],
-  'Recoleta': [-70.6333, -33.4167],
-  'La Reina': [-70.5333, -33.4500],
-  'Peñalolén': [-70.5333, -33.4833],
+  Vitacura: [-70.5667, -33.3833],
+  Ñuñoa: [-70.5978, -33.4564],
+  Maipú: [-70.7667, -33.5167],
+  Recoleta: [-70.6333, -33.4167],
+  'La Reina': [-70.5333, -33.45],
+  Peñalolén: [-70.5333, -33.4833],
 };
 
 // Assign coordinates to establishments
@@ -153,7 +195,7 @@ function SimpleMap({
   onBoundsChange,
 }: {
   establishments: typeof ESTABLISHMENTS_WITH_COORDS;
-  onMarkerClick: (est: typeof ESTABLISHMENTS_WITH_COORDS[0]) => void;
+  onMarkerClick: (est: (typeof ESTABLISHMENTS_WITH_COORDS)[0]) => void;
   selectedCommune: string;
   selectedEstablishmentId: string | null;
   onBoundsChange: (visible: typeof ESTABLISHMENTS_WITH_COORDS) => void;
@@ -171,10 +213,119 @@ function SimpleMap({
       style: 'mapbox://styles/mapbox/streets-v12',
       center: SANTIAGO_CENTER,
       zoom: DEFAULT_ZOOM,
+      maxBounds: SANTIAGO_BOUNDS, // Restricts map to Santiago area
+      minZoom: 10, // Prevent zooming out too far
+      maxZoom: 18, // Allow detailed street view
     });
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Wait for the style to load before hiding unwanted layers
+    map.current.on('load', () => {
+      if (!map.current) return;
+
+      // Get all layers from the style
+      const layers = map.current.getStyle().layers;
+
+      if (!layers) return;
+
+      // LOG: Uncomment to see all available layer IDs in the console
+      // This helps you identify which layers to hide
+      // console.log('Available layers:', layers.map(l => ({ id: l.id, type: l.type })));
+
+      // Hide specific POI (Points of Interest) labels and icons
+      layers.forEach((layer) => {
+        // Hide only RESTAURANT and SHOP POI labels
+        // Keep: parks, transit, airports, cultural sites, education, religion
+        if (layer.id.includes('poi-label')) {
+          const layerId = layer.id.toLowerCase();
+
+          // List of POI types to KEEP visible:
+          const keepVisible = [
+            'park', // Parques
+            'natural', // Áreas naturales
+            'recreation', // Áreas recreativas
+            'transit', // Transporte público
+            'airport', // Aeropuertos
+            'station', // Estaciones
+            'museum', // Museos
+            'theatre', // Teatros
+            'theater', // Teatros (variación)
+            'gallery', // Galerías
+            'cultural', // Lugares culturales
+            'monument', // Monumentos
+            'memorial', // Memoriales
+            'historic', // Lugares históricos
+            'education', // Educación
+            'school', // Escuelas
+            'university', // Universidades
+            'library', // Bibliotecas
+            'religious', // Lugares religiosos
+            'church', // Iglesias
+            'temple', // Templos
+            'worship', // Lugares de culto
+          ];
+
+          // Check if this POI should be kept visible
+          const shouldKeep = keepVisible.some((keyword) =>
+            layerId.includes(keyword)
+          );
+
+          // Hide only if it's NOT in our keep list (i.e., hide restaurants/shops)
+          if (!shouldKeep) {
+            map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+          }
+        }
+
+        // NOTE: We now KEEP transit and airport labels visible
+        // The code below is commented out - they are visible by default
+        // if (
+        //   layer.id.includes('transit-label') ||
+        //   layer.id.includes('airport-label')
+        // ) {
+        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        // }
+
+        // Hide place labels (neighborhoods, suburbs) but keep city/country names
+        if (
+          layer.id.includes('place-label') &&
+          (layer.id.includes('neighbourhood') || layer.id.includes('suburb'))
+        ) {
+          map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        }
+
+        // Hide building labels
+        if (layer.id.includes('building-number-label')) {
+          map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        }
+
+        // Optionally: Hide 3D buildings if they interfere
+        // Uncomment if you want to remove 3D buildings
+        // if (layer.id.includes('building') && layer.type === 'fill-extrusion') {
+        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        // }
+
+        // Optionally: Hide road labels (street names)
+        // Uncomment if you want cleaner streets without names
+        // if (layer.id.includes('road-label')) {
+        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        // }
+
+        // Optionally: Hide water labels (lake/river names)
+        // if (layer.id.includes('water-label') || layer.id.includes('waterway-label')) {
+        //   map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        // }
+      });
+
+      console.log(
+        '✅ Map loaded. Only restaurant/shop POI hidden. Transit, airports & culture visible.'
+      );
+      console.log('📍 Map bounds:', SANTIAGO_BOUNDS);
+      console.log(
+        '🎭 Visible: Transit, Airports, Museums, Parks, Cultural sites'
+      );
+    });
 
     // Update visible establishments when map moves
     map.current.on('moveend', () => {
@@ -193,7 +344,7 @@ function SimpleMap({
 
     const bounds = map.current.getBounds();
     if (!bounds) return;
-    
+
     const visible = establishments.filter((est) => {
       const [lng, lat] = est.coordinates;
       return bounds.contains([lng, lat]);
@@ -228,9 +379,13 @@ function SimpleMap({
       el.style.height = '50px';
       el.style.cursor = 'pointer';
       el.style.opacity = opacity.toString();
-      
+
       el.innerHTML = `
-        <svg width="40" height="50" viewBox="0 0 40 50" fill="none" style="filter: ${selectedEstablishmentId === est.id ? `drop-shadow(0 0 12px ${color}99)` : 'none'}; transition: all 0.2s;">
+        <svg width="40" height="50" viewBox="0 0 40 50" fill="none" style="filter: ${
+          selectedEstablishmentId === est.id
+            ? `drop-shadow(0 0 12px ${color}99)`
+            : 'none'
+        }; transition: all 0.2s;">
           <path
             d="M20 0C9.52 0 0 8.84 0 20.9C0 31.54 12.4 45.34 17.28 50.66C18.78 52.28 21.22 52.28 22.72 50.66C27.6 45.34 40 31.54 40 20.9C40 8.84 30.48 0 20 0Z"
             fill="${color}"
@@ -283,8 +438,8 @@ function SimpleMap({
   }, [selectedCommune, establishments.length]);
 
   return (
-    <div 
-      ref={mapContainer} 
+    <div
+      ref={mapContainer}
       className="w-full h-full"
       style={{ position: 'relative' }}
     />
@@ -324,7 +479,10 @@ function Sidebar({
       {/* Search */}
       <div className="p-4 border-b border-[#E2E8F0] shrink-0">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+            size={18}
+          />
           <input
             type="text"
             placeholder="Buscar en vista..."
@@ -349,7 +507,9 @@ function Sidebar({
           <div className="p-8 text-center">
             <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
             <p className="text-[#64748B]">
-              {searchQuery ? 'No se encontraron resultados' : 'No hay establecimientos en esta vista'}
+              {searchQuery
+                ? 'No se encontraron resultados'
+                : 'No hay establecimientos en esta vista'}
             </p>
           </div>
         ) : (
@@ -372,14 +532,20 @@ function Sidebar({
                   <h4 className="text-sm text-[#334155] line-clamp-1 flex-1">
                     {est.name}
                   </h4>
-                  <StatusBadge status={est.status} closingTime={est.closingTime} />
+                  <StatusBadge
+                    status={est.status}
+                    closingTime={est.closingTime}
+                  />
                 </div>
-                
+
                 <div className="flex items-center gap-2 mb-2">
                   <TypeBadge type={est.type} />
                   {est.rating && (
                     <div className="flex items-center gap-1 text-xs text-[#64748B]">
-                      <Star size={12} className="fill-[#F97316] text-[#F97316]" />
+                      <Star
+                        size={12}
+                        className="fill-[#F97316] text-[#F97316]"
+                      />
                       <span>{est.rating}</span>
                     </div>
                   )}
@@ -428,10 +594,7 @@ function MobileDrawer({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-1000"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-1000" onClick={onClose} />
 
       {/* Drawer */}
       <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-1001 max-h-[70vh] flex flex-col animate-slide-up">
@@ -459,7 +622,10 @@ function MobileDrawer({
         {/* Search */}
         <div className="p-4 border-b border-[#E2E8F0]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Buscar..."
@@ -484,7 +650,9 @@ function MobileDrawer({
             <div className="p-8 text-center">
               <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
               <p className="text-[#64748B]">
-                {searchQuery ? 'No se encontraron resultados' : 'No hay establecimientos en esta vista'}
+                {searchQuery
+                  ? 'No se encontraron resultados'
+                  : 'No hay establecimientos en esta vista'}
               </p>
             </div>
           ) : (
@@ -509,14 +677,20 @@ function MobileDrawer({
                     <h4 className="text-sm text-[#334155] line-clamp-1 flex-1">
                       {est.name}
                     </h4>
-                    <StatusBadge status={est.status} closingTime={est.closingTime} />
+                    <StatusBadge
+                      status={est.status}
+                      closingTime={est.closingTime}
+                    />
                   </div>
-                  
+
                   <div className="flex items-center gap-2 mb-2">
                     <TypeBadge type={est.type} />
                     {est.rating && (
                       <div className="flex items-center gap-1 text-xs text-[#64748B]">
-                        <Star size={12} className="fill-[#F97316] text-[#F97316]" />
+                        <Star
+                          size={12}
+                          className="fill-[#F97316] text-[#F97316]"
+                        />
                         <span>{est.rating}</span>
                       </div>
                     )}
@@ -546,10 +720,16 @@ function MobileDrawer({
 export default function MapScreen() {
   const router = useRouter();
   const [selectedCommune, setSelectedCommune] = useState('');
-  const [selectedType, setSelectedType] = useState<EstablishmentType | 'Todos'>('Todos');
+  const [selectedType, setSelectedType] = useState<EstablishmentType | 'Todos'>(
+    'Todos'
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<string | null>(null);
-  const [visibleEstablishments, setVisibleEstablishments] = useState<typeof ESTABLISHMENTS_WITH_COORDS>([]);
+  const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<
+    string | null
+  >(null);
+  const [visibleEstablishments, setVisibleEstablishments] = useState<
+    typeof ESTABLISHMENTS_WITH_COORDS
+  >([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -591,7 +771,9 @@ export default function MapScreen() {
     setSelectedType(type);
   };
 
-  const handleMarkerClick = (establishment: typeof ESTABLISHMENTS_WITH_COORDS[0]) => {
+  const handleMarkerClick = (
+    establishment: (typeof ESTABLISHMENTS_WITH_COORDS)[0]
+  ) => {
     setSelectedEstablishmentId(establishment.id);
   };
 
