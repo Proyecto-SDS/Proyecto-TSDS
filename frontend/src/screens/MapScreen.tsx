@@ -739,6 +739,12 @@ export default function MapScreen() {
 
   const handleMarkerClick = (establishment: Establishment) => {
     setSelectedEstablishmentId(establishment.id);
+
+    // En mobile, abrir el drawer cuando se hace click en un marcador
+    if (window.innerWidth < 768) {
+      // md breakpoint
+      setIsDrawerOpen(true);
+    }
   };
 
   const handleSelectEstablishment = (id: string) => {
