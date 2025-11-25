@@ -48,9 +48,7 @@ def seed_database():
             db.add_all([
                 TipoLocal(nombre="Restaurante"),
                 TipoLocal(nombre="Bar"),
-                TipoLocal(nombre="Cafetería"),
-                TipoLocal(nombre="Pub"),
-                TipoLocal(nombre="Pastelería"),
+                TipoLocal(nombre="Restobar"),
             ])
             db.commit()
             print("    ✓ Tipos de Local insertados")
@@ -180,7 +178,7 @@ def seed_database():
             print("  → Insertando Locales de ejemplo...")
             local1 = Local(id_direccion=1, id_tipo_local=1, nombre="El Gran Sabor", telefono=123456789, correo="contacto@gransabor.cl")
             local2 = Local(id_direccion=2, id_tipo_local=2, nombre="Bar La Terraza", telefono=987654321, correo="reservas@laterraza.cl")
-            local3 = Local(id_direccion=3, id_tipo_local=3, nombre="Café del Parque", telefono=555666777, correo="info@cafeparque.com")
+            local3 = Local(id_direccion=3, id_tipo_local=3, nombre="Restobar del Parque", telefono=555666777, correo="info@restobarparque.com")
             local4 = Local(id_direccion=4, id_tipo_local=1, nombre="Rincón Peruano", telefono=111222333, correo="contacto@rinconperuano.cl")
             local5 = Local(id_direccion=5, id_tipo_local=2, nombre="The Old Pub", telefono=444555666, correo="contact@theoldpub.com")
             db.add_all([local1, local2, local3, local4, local5])
@@ -208,12 +206,12 @@ def seed_database():
                     dia_semana=dia, hora_apertura=time(17, 0), hora_cierre=time(23, 0),
                     abierto=True
                 ))
-            # Horarios para Local 3 - Cafetería (Lun-Dom 8:00-20:00)
+            # Horarios para Local 3 - Restobar (Lun-Dom 12:00-20:00)
             for dia in range(1, 8):
                 db.add(Horario(
                     id_local=3, tipo=TipoHorarioEnum.NORMAL,
                     fecha_inicio=date(2024, 1, 1), fecha_fin=date(2025, 12, 31),
-                    dia_semana=dia, hora_apertura=time(8, 0), hora_cierre=time(20, 0),
+                    dia_semana=dia, hora_apertura=time(12, 0), hora_cierre=time(20, 0),
                     abierto=True
                 ))
             # Horarios para Local 4 - Restaurante (Lun-Dom 12:00-23:00)
@@ -224,7 +222,7 @@ def seed_database():
                     dia_semana=dia, hora_apertura=time(12, 0), hora_cierre=time(23, 0),
                     abierto=True
                 ))
-            # Horarios para Local 5 - Pub (Lun-Dom 18:00-23:00)
+            # Horarios para Local 5 - Bar (Lun-Dom 18:00-23:00)
             for dia in range(1, 8):
                 db.add(Horario(
                     id_local=5, tipo=TipoHorarioEnum.NORMAL,

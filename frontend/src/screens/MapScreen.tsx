@@ -9,6 +9,7 @@ import { StatusBadge } from '../components/badges/StatusBadge';
 import { TypeBadge } from '../components/badges/TypeBadge';
 import { FilterChip } from '../components/inputs/FilterChip';
 import type { Establishment, EstablishmentType } from '../types';
+import { api } from '../utils/apiClient';
 import { ESTABLISHMENT_TYPES } from '../utils/constants';
 
 // Configurar token de Mapbox
@@ -60,115 +61,9 @@ const SANTIAGO_BOUNDS: mapboxgl.LngLatBoundsLike = [
  * cuando el mapa cargue.
  */
 
-// Mock data with real Santiago coordinates
-const MOCK_ESTABLISHMENTS: Establishment[] = [
-  {
-    id: '1',
-    name: 'La Buena Mesa',
-    type: 'Restaurante',
-    address: 'Av. Providencia 1234',
-    commune: 'Providencia',
-    phone: '+56912345678',
-    email: 'contacto@labuena.cl',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
-    rating: 4.7,
-    reviewCount: 128,
-    status: 'open',
-    closingTime: '23:00',
-  },
-  {
-    id: '2',
-    name: 'El Restobar Moderno',
-    type: 'Restobar',
-    address: 'Av. Las Condes 5678',
-    commune: 'Las Condes',
-    phone: '+56987654321',
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
-    rating: 4.3,
-    reviewCount: 89,
-    status: 'open',
-    closingTime: '22:00',
-  },
-  {
-    id: '3',
-    name: 'Bar Central',
-    type: 'Bar',
-    address: 'Calle Monjitas 890',
-    commune: 'Santiago Centro',
-    phone: '+56911223344',
-    image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800',
-    rating: 4.5,
-    reviewCount: 245,
-    status: 'closed',
-  },
-  {
-    id: '4',
-    name: 'Restaurante Italiano',
-    type: 'Restaurante',
-    address: 'Av. Vitacura 3456',
-    commune: 'Vitacura',
-    phone: '+56922334455',
-    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800',
-    rating: 4.8,
-    reviewCount: 312,
-    status: 'open',
-    closingTime: '23:30',
-  },
-  {
-    id: '5',
-    name: 'Restobar Ñuñoa',
-    type: 'Restobar',
-    address: 'Av. Irarrazaval 2345',
-    commune: 'Ñuñoa',
-    phone: '+56933445566',
-    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800',
-    rating: 4.2,
-    reviewCount: 156,
-    status: 'open',
-    closingTime: '22:30',
-  },
-  {
-    id: '6',
-    name: 'Bar de Copas',
-    type: 'Bar',
-    address: 'Av. Providencia 2567',
-    commune: 'Providencia',
-    phone: '+56944556677',
-    image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800',
-    rating: 4.6,
-    reviewCount: 198,
-    status: 'open',
-    closingTime: '02:00',
-  },
-  {
-    id: '7',
-    name: 'Restaurante Maipú',
-    type: 'Restaurante',
-    address: 'Av. Pajaritos 4567',
-    commune: 'Maipú',
-    phone: '+56955667788',
-    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800',
-    rating: 4.1,
-    reviewCount: 87,
-    status: 'open',
-    closingTime: '22:00',
-  },
-  {
-    id: '8',
-    name: 'Bar Recoleta',
-    type: 'Bar',
-    address: 'Av. Recoleta 1234',
-    commune: 'Recoleta',
-    phone: '+56966778899',
-    image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800',
-    rating: 3.9,
-    reviewCount: 64,
-    status: 'closed',
-  },
-];
-
-// Approximate coordinates for Santiago communes
+// Commune coordinates mapping (fallback if API doesn't provide coords)
 const COMMUNE_COORDINATES: Record<string, [number, number]> = {
+  Santiago: [-70.6506, -33.4372],
   'Santiago Centro': [-70.6506, -33.4372],
   Providencia: [-70.61, -33.4264],
   'Las Condes': [-70.5833, -33.4167],
@@ -180,35 +75,28 @@ const COMMUNE_COORDINATES: Record<string, [number, number]> = {
   Peñalolén: [-70.5333, -33.4833],
 };
 
-// Assign coordinates to establishments
-const ESTABLISHMENTS_WITH_COORDS = MOCK_ESTABLISHMENTS.map((est) => ({
-  ...est,
-  coordinates: COMMUNE_COORDINATES[est.commune] || SANTIAGO_CENTER,
-}));
-
 // Simple map component using Mapbox GL JS
 function SimpleMap({
   establishments,
   onMarkerClick,
   selectedCommune,
   selectedEstablishmentId,
-  onBoundsChange,
+  mapRef,
 }: {
-  establishments: typeof ESTABLISHMENTS_WITH_COORDS;
-  onMarkerClick: (est: (typeof ESTABLISHMENTS_WITH_COORDS)[0]) => void;
+  establishments: Establishment[];
+  onMarkerClick: (est: Establishment) => void;
   selectedCommune: string;
   selectedEstablishmentId: string | null;
-  onBoundsChange: (visible: typeof ESTABLISHMENTS_WITH_COORDS) => void;
+  mapRef: React.MutableRefObject<mapboxgl.Map | null>;
 }) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || mapRef.current) return;
 
-    map.current = new mapboxgl.Map({
+    mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: SANTIAGO_CENTER,
@@ -219,14 +107,14 @@ function SimpleMap({
     });
 
     // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     // Wait for the style to load before hiding unwanted layers
-    map.current.on('load', () => {
-      if (!map.current) return;
+    mapRef.current.on('load', () => {
+      if (!mapRef.current) return;
 
       // Get all layers from the style
-      const layers = map.current.getStyle().layers;
+      const layers = mapRef.current.getStyle().layers;
 
       if (!layers) return;
 
@@ -274,7 +162,7 @@ function SimpleMap({
 
           // Hide only if it's NOT in our keep list (i.e., hide restaurants/shops)
           if (!shouldKeep) {
-            map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+            mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
           }
         }
 
@@ -292,12 +180,12 @@ function SimpleMap({
           layer.id.includes('place-label') &&
           (layer.id.includes('neighbourhood') || layer.id.includes('suburb'))
         ) {
-          map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+          mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
         }
 
         // Hide building labels
         if (layer.id.includes('building-number-label')) {
-          map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+          mapRef.current?.setLayoutProperty(layer.id, 'visibility', 'none');
         }
 
         // Optionally: Hide 3D buildings if they interfere
@@ -327,35 +215,15 @@ function SimpleMap({
       );
     });
 
-    // Update visible establishments when map moves
-    map.current.on('moveend', () => {
-      updateVisibleEstablishments();
-    });
-
     return () => {
-      map.current?.remove();
-      map.current = null;
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
   }, []);
 
-  // Update visible establishments based on viewport
-  const updateVisibleEstablishments = () => {
-    if (!map.current) return;
-
-    const bounds = map.current.getBounds();
-    if (!bounds) return;
-
-    const visible = establishments.filter((est) => {
-      const [lng, lat] = est.coordinates;
-      return bounds.contains([lng, lat]);
-    });
-
-    onBoundsChange(visible);
-  };
-
   // Update markers when establishments change
   useEffect(() => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
 
     // Remove old markers
     markersRef.current.forEach((marker) => marker.remove());
@@ -363,13 +231,13 @@ function SimpleMap({
 
     // Add new markers
     establishments.forEach((est) => {
-      const colors = {
+      const colors: Record<string, string> = {
         Restaurante: '#F97316',
         Restobar: '#EA580C',
         Bar: '#FB923C',
       };
 
-      const color = colors[est.type];
+      const color = colors[est.type] || '#F97316'; // Default to orange if type not found
       const opacity = est.status === 'open' ? 1 : 0.5;
 
       // Create custom marker element
@@ -381,55 +249,62 @@ function SimpleMap({
       el.style.opacity = opacity.toString();
 
       el.innerHTML = `
-        <svg width="40" height="50" viewBox="0 0 40 50" fill="none" style="filter: ${
-          selectedEstablishmentId === est.id
-            ? `drop-shadow(0 0 12px ${color}99)`
-            : 'none'
-        }; transition: all 0.2s;">
-          <path
-            d="M20 0C9.52 0 0 8.84 0 20.9C0 31.54 12.4 45.34 17.28 50.66C18.78 52.28 21.22 52.28 22.72 50.66C27.6 45.34 40 31.54 40 20.9C40 8.84 30.48 0 20 0Z"
-            fill="${color}"
-          />
-          <circle cx="20" cy="20" r="8" fill="white" />
-        </svg>
+        <div class="marker-inner" style="transition: transform 0.2s; transform-origin: center bottom;">
+          <svg width="40" height="50" viewBox="0 0 40 50" fill="none" style="filter: ${
+            selectedEstablishmentId === est.id
+              ? `drop-shadow(0 0 12px ${color}99)`
+              : 'none'
+          }; transition: filter 0.2s; display: block;">
+            <path
+              d="M20 0C9.52 0 0 8.84 0 20.9C0 31.54 12.4 45.34 17.28 50.66C18.78 52.28 21.22 52.28 22.72 50.66C27.6 45.34 40 31.54 40 20.9C40 8.84 30.48 0 20 0Z"
+              fill="${color}"
+            />
+            <circle cx="20" cy="20" r="8" fill="white" />
+          </svg>
+        </div>
       `;
 
+      const innerEl = el.querySelector('.marker-inner') as HTMLElement;
+
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.3)';
+        if (innerEl) {
+          innerEl.style.transform = 'scale(1.3)';
+        }
       });
 
       el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
+        if (innerEl) {
+          innerEl.style.transform = 'scale(1)';
+        }
       });
 
       // Create marker
       const marker = new mapboxgl.Marker(el)
         .setLngLat(est.coordinates)
-        .addTo(map.current!);
+        .addTo(mapRef.current!);
 
       // Add click handler
-      el.addEventListener('click', () => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
         onMarkerClick(est);
       });
 
       markersRef.current.set(est.id, marker);
     });
-
-    updateVisibleEstablishments();
   }, [establishments, selectedEstablishmentId]);
 
   // Fly to commune when selected
   useEffect(() => {
-    if (!map.current) return;
+    if (!mapRef.current) return;
 
     if (selectedCommune && COMMUNE_COORDINATES[selectedCommune]) {
-      map.current.flyTo({
+      mapRef.current.flyTo({
         center: COMMUNE_COORDINATES[selectedCommune],
         zoom: 13,
         duration: 1500,
       });
     } else if (establishments.length > 0) {
-      map.current.flyTo({
+      mapRef.current.flyTo({
         center: SANTIAGO_CENTER,
         zoom: DEFAULT_ZOOM,
         duration: 1500,
@@ -448,7 +323,7 @@ function SimpleMap({
 
 // Sidebar component
 interface SidebarProps {
-  establishments: typeof ESTABLISHMENTS_WITH_COORDS;
+  establishments: Establishment[];
   totalCount: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -465,6 +340,28 @@ function Sidebar({
   onSelectEstablishment,
 }: SidebarProps) {
   const router = useRouter();
+  const listRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to selected establishment
+  useEffect(() => {
+    if (selectedId && selectedRef.current && listRef.current) {
+      const listRect = listRef.current.getBoundingClientRect();
+      const selectedRect = selectedRef.current.getBoundingClientRect();
+
+      // Check if element is out of view
+      const isOutOfView =
+        selectedRect.top < listRect.top ||
+        selectedRect.bottom > listRect.bottom;
+
+      if (isOutOfView) {
+        selectedRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+    }
+  }, [selectedId]);
 
   return (
     <div className="w-[280px] lg:w-[320px] h-full bg-white shadow-lg overflow-hidden flex flex-col">
@@ -502,7 +399,7 @@ function Sidebar({
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div ref={listRef} className="flex-1 overflow-y-auto custom-scrollbar">
         {establishments.length === 0 ? (
           <div className="p-8 text-center">
             <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
@@ -517,6 +414,7 @@ function Sidebar({
             {establishments.slice(0, 50).map((est) => (
               <div
                 key={est.id}
+                ref={selectedId === est.id ? selectedRef : null}
                 onClick={() => onSelectEstablishment(est.id)}
                 className={`
                   p-3 border rounded-xl cursor-pointer transition-all
@@ -588,6 +486,20 @@ function MobileDrawer({
   onClose,
 }: MobileDrawerProps) {
   const router = useRouter();
+  const listRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to selected establishment
+  useEffect(() => {
+    if (selectedId && selectedRef.current && listRef.current && isOpen) {
+      setTimeout(() => {
+        selectedRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 100);
+    }
+  }, [selectedId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -645,7 +557,7 @@ function MobileDrawer({
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto">
+        <div ref={listRef} className="flex-1 overflow-y-auto">
           {establishments.length === 0 ? (
             <div className="p-8 text-center">
               <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
@@ -660,6 +572,7 @@ function MobileDrawer({
               {establishments.slice(0, 50).map((est) => (
                 <div
                   key={est.id}
+                  ref={selectedId === est.id ? selectedRef : null}
                   onClick={() => {
                     onSelectEstablishment(est.id);
                     onClose();
@@ -719,20 +632,59 @@ function MobileDrawer({
 
 export default function MapScreen() {
   const router = useRouter();
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const [establishments, setEstablishments] = useState<Establishment[]>([]);
   const [selectedCommune, setSelectedCommune] = useState('');
   const [selectedType, setSelectedType] = useState<EstablishmentType | 'Todos'>(
     'Todos'
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedEstablishmentId, setSelectedEstablishmentId] = useState<
     string | null
   >(null);
-  const [visibleEstablishments, setVisibleEstablishments] = useState<
-    typeof ESTABLISHMENTS_WITH_COORDS
-  >([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Load establishments from API
+  useEffect(() => {
+    const loadEstablishments = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await api.getEstablishments();
+
+        // Transform API response to match Establishment interface
+        const transformedData: Establishment[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          type: item.type as EstablishmentType,
+          address: item.address,
+          commune: item.commune,
+          phone: item.phone,
+          email: item.email,
+          image:
+            item.image ||
+            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+          rating: item.rating,
+          reviewCount: item.reviewCount,
+          status: item.status as 'open' | 'closed',
+          closingTime: item.closingTime,
+          coordinates: item.coordinates as [number, number],
+        }));
+
+        setEstablishments(transformedData);
+      } catch (err) {
+        console.error('Error loading establishments:', err);
+        setError('Error al cargar los establecimientos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEstablishments();
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -745,7 +697,7 @@ export default function MapScreen() {
 
   // Filter establishments based on selected filters
   const filteredEstablishments = useMemo(() => {
-    let filtered = ESTABLISHMENTS_WITH_COORDS;
+    let filtered = establishments;
 
     if (selectedCommune && selectedCommune !== '') {
       filtered = filtered.filter((est) => est.commune === selectedCommune);
@@ -756,37 +708,38 @@ export default function MapScreen() {
     }
 
     return filtered;
-  }, [selectedCommune, selectedType]);
+  }, [establishments, selectedCommune, selectedType]);
 
   // Filter visible establishments by search
   const searchedEstablishments = useMemo(() => {
-    if (!debouncedSearch) return visibleEstablishments;
+    if (!debouncedSearch) return filteredEstablishments;
 
-    return visibleEstablishments.filter((est) =>
+    return filteredEstablishments.filter((est) =>
       est.name.toLowerCase().includes(debouncedSearch.toLowerCase())
     );
-  }, [visibleEstablishments, debouncedSearch]);
+  }, [filteredEstablishments, debouncedSearch]);
 
   const handleTypeFilter = (type: EstablishmentType | 'Todos') => {
     setSelectedType(type);
   };
 
-  const handleMarkerClick = (
-    establishment: (typeof ESTABLISHMENTS_WITH_COORDS)[0]
-  ) => {
+  const handleMarkerClick = (establishment: Establishment) => {
     setSelectedEstablishmentId(establishment.id);
   };
 
   const handleSelectEstablishment = (id: string) => {
     setSelectedEstablishmentId(id);
-  };
 
-  // Mock loading state on initial render
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    // Find the establishment and fly to it on the map
+    const establishment = establishments.find((est) => est.id === id);
+    if (establishment && mapRef.current) {
+      mapRef.current.flyTo({
+        center: establishment.coordinates,
+        zoom: 15,
+        duration: 1000,
+      });
+    }
+  };
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
@@ -834,6 +787,19 @@ export default function MapScreen() {
                 <p className="text-[#64748B]">Cargando establecimientos...</p>
               </div>
             </div>
+          ) : error ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#F1F5F9] z-1000">
+              <div className="text-center">
+                <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
+                <p className="text-[#64748B] mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-[#F97316] text-white rounded-lg hover:bg-[#EA580C] transition-colors"
+                >
+                  Reintentar
+                </button>
+              </div>
+            </div>
           ) : null}
 
           <SimpleMap
@@ -841,7 +807,7 @@ export default function MapScreen() {
             onMarkerClick={handleMarkerClick}
             selectedCommune={selectedCommune}
             selectedEstablishmentId={selectedEstablishmentId}
-            onBoundsChange={setVisibleEstablishments}
+            mapRef={mapRef}
           />
 
           {/* Mobile: List button */}
@@ -851,7 +817,7 @@ export default function MapScreen() {
           >
             <Menu size={20} className="text-[#334155]" />
             <span className="text-sm text-[#334155]">
-              Listado ({visibleEstablishments.length})
+              Listado ({searchedEstablishments.length})
             </span>
           </button>
         </div>
@@ -893,21 +859,38 @@ export default function MapScreen() {
           animation: slide-up 0.3s ease-out;
         }
 
+        /* Custom Scrollbar Design */
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+          width: 10px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
+          background: #F1F5F9;
+          border-radius: 10px;
+          margin: 4px 0;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 4px;
+          background: linear-gradient(180deg, #F97316 0%, #EA580C 100%);
+          border-radius: 10px;
+          border: 2px solid #F1F5F9;
+          transition: all 0.3s ease;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
+          background: linear-gradient(180deg, #EA580C 0%, #C2410C 100%);
+          border-color: #E2E8F0;
+          box-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          background: #C2410C;
+        }
+
+        /* Firefox */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #F97316 #F1F5F9;
         }
       `}</style>
     </div>

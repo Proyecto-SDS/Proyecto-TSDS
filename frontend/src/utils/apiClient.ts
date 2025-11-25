@@ -42,7 +42,7 @@ export async function apiCall(endpoint: string, options: ApiCallOptions = {}) {
 
 // Specific API methods
 export const api = {
-  // Establishments endpoints
+  // Establishments endpoints - /api/locales/
   getEstablishments: () => apiCall('/api/locales/'),
 
   getEstablishment: (id: string) => apiCall(`/api/locales/${id}`),
@@ -78,14 +78,6 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ nombre, telefono }),
     }),
-
-  // Establishment endpoints
-  getEstablishments: (params?: { comuna_id?: string; tipo_id?: string }) => {
-    const query = params
-      ? `?${new URLSearchParams(params as any).toString()}`
-      : '';
-    return apiCall(`/api/establecimientos${query}`);
-  },
 
   getEstablishmentById: (id: string) => apiCall(`/api/establecimientos/${id}`),
 

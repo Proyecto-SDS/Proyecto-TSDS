@@ -22,12 +22,13 @@ export interface Establishment {
   email?: string;
   description?: string;
   image: string;
-  rating: number;
+  rating: number | null;
   reviewCount: number;
   status: EstablishmentStatus;
   openingHours?: string;
-  closingTime?: string;
+  closingTime?: string | null;
   priceRange?: number; // 1-4 ($, $$, $$$, $$$$)
+  coordinates: [number, number]; // [longitude, latitude]
 }
 
 export interface Table {

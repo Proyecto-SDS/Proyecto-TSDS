@@ -1,9 +1,8 @@
-import React from 'react';
 import type { EstablishmentStatus } from '../../types';
 
 export interface StatusBadgeProps {
   status: EstablishmentStatus;
-  closingTime?: string;
+  closingTime?: string | null;
 }
 
 export function StatusBadge({ status, closingTime }: StatusBadgeProps) {
