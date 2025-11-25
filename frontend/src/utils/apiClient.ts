@@ -42,6 +42,11 @@ export async function apiCall(endpoint: string, options: ApiCallOptions = {}) {
 
 // Specific API methods
 export const api = {
+  // Establishments endpoints
+  getEstablishments: () => apiCall('/api/locales/'),
+
+  getEstablishment: (id: string) => apiCall(`/api/locales/${id}`),
+
   // Auth endpoints
   login: (correo: string, contrasena: string) =>
     apiCall('/api/login', {
