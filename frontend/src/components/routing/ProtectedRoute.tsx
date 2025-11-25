@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 interface ProtectedRouteProps {
@@ -10,7 +10,16 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isLoggedIn, isLoading } = useAuth();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      // Save the attempted location and redirect to login
+      sessionStorage.setItem('redirectAfterLogin', pathname);
+      router.push('/login');
+    }
+  }, [isLoggedIn, isLoading, router, pathname]);
 
   if (isLoading) {
     return (
@@ -24,8 +33,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isLoggedIn) {
-    // Redirect to login, but save the attempted location
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Return null while redirecting
+    return null;
   }
 
   return <>{children}</>;

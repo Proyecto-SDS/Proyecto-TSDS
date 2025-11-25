@@ -62,7 +62,7 @@ export function NavHeader() {
             href="/"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-[#F97316] to-[#EF4444] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-linear-to-r from-[#F97316] to-[#EF4444] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">R</span>
             </div>
             <span className="hidden sm:block text-[#334155] font-semibold">
