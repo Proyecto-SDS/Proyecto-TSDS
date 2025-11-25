@@ -1,3 +1,4 @@
+import { NavHeader } from '@/components/layout/NavHeader';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
@@ -8,7 +9,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'ReservaYa - Reservas de Restaurantes en Santiago',
-  description: 'Encuentra y reserva los mejores restaurantes, restobares y bares en Santiago, Chile.',
+  description:
+    'Encuentra y reserva los mejores restaurantes, restobares y bares en Santiago, Chile.',
 };
 
 export default function RootLayout({
@@ -20,7 +22,8 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {children}
+          <NavHeader />
+          <main className="pt-16">{children}</main>
           <Toaster position="top-right" richColors />
         </Providers>
       </body>
