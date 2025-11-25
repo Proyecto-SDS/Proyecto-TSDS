@@ -3,18 +3,18 @@
 :root {
   /* ReservaYa Design System - Base Tokens */
   --font-size: 16px;
-  
+
   /* ReservaYa Brand Colors */
-  --reservaya-orange: #F97316;
-  --reservaya-red: #EF4444;
-  --reservaya-green: #22C55E;
-  --reservaya-blue: #3B82F6;
+  --reservaya-orange: #f97316;
+  --reservaya-red: #ef4444;
+  --reservaya-green: #22c55e;
+  --reservaya-blue: #3b82f6;
   --reservaya-slate-dark: #334155;
-  --reservaya-slate-light: #F1F5F9;
-  --reservaya-white: #FFFFFF;
-  --reservaya-gray-border: #E2E8F0;
-  --reservaya-gray-500: #64748B;
-  
+  --reservaya-slate-light: #f1f5f9;
+  --reservaya-white: #ffffff;
+  --reservaya-gray-border: #e2e8f0;
+  --reservaya-gray-500: #64748b;
+
   /* ReservaYa Typography Sizes */
   --text-h1: 36px;
   --text-h2: 24px;
@@ -23,7 +23,7 @@
   --text-base: 16px;
   --text-sm: 14px;
   --text-xs: 12px;
-  
+
   /* System tokens for Shadcn compatibility */
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -221,4 +221,98 @@
 
 html {
   font-size: var(--font-size);
+}
+
+/**
+ * ReservaYa Custom Scrollbar Design System
+ * Minimal and subtle scrollbar - just a simple bar
+ */
+@layer utilities {
+  /* Hide scrollbar completely */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Custom styled scrollbar - Ultra minimal */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, 0.6);
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.8);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Firefox support */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(203, 213, 225, 0.6) transparent;
+  }
+
+  /* Horizontal scrollbar styling */
+  .custom-scrollbar-x::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .custom-scrollbar-x::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar-x::-webkit-scrollbar-thumb {
+    background: rgba(203, 213, 225, 0.5);
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar-x::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
+  }
+
+  .custom-scrollbar-x::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  .custom-scrollbar-x {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(203, 213, 225, 0.5) transparent;
+  }
+
+  /* Slide-up animation for mobile drawer */
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
 }

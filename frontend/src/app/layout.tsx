@@ -20,10 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body
+        className={`${inter.className} flex flex-col h-screen overflow-hidden`}
+      >
         <Providers>
           <NavHeader />
-          <main className="pt-16">{children}</main>
+          <main className="flex-1 overflow-y-auto pt-16">{children}</main>
           <Toaster position="top-right" richColors />
         </Providers>
       </body>

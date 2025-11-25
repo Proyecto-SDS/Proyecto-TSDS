@@ -24,7 +24,7 @@ export function RatingBadge({
   }
 
   const isExcellent = rating >= 4.5;
-  const color = isExcellent ? '#22C55E' : '#94A3B8';
+  const color = isExcellent ? '#22C55E' : '#F97316';
 
   return (
     <div className="inline-flex items-center gap-1">

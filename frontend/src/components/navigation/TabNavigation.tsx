@@ -1,6 +1,5 @@
 'use client';
 
-
 export interface TabItem {
   id: string;
   label: string;
@@ -13,10 +12,14 @@ export interface TabNavigationProps {
   onChange: (tabValue: string) => void;
 }
 
-export function TabNavigation({ tabs, activeTab, onChange }: TabNavigationProps) {
+export function TabNavigation({
+  tabs,
+  activeTab,
+  onChange,
+}: TabNavigationProps) {
   return (
     <div
-      className="flex gap-6 border-b border-[#E2E8F0] overflow-x-auto"
+      className="flex gap-6 border-b border-[#E2E8F0] overflow-x-auto scrollbar-hide"
       role="tablist"
     >
       {tabs.map((tab) => {

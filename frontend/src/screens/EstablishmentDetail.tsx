@@ -6,10 +6,13 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Facebook,
   Heart,
+  Instagram,
   MapPin,
   Phone,
   Star,
+  Twitter,
   Users,
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -75,10 +78,18 @@ function EstablishmentHeader({
   isFavorite,
   onToggleFavorite,
 }: any) {
+  // Priorizar banner, luego hero, luego la primera imagen disponible
+  const bannerImage =
+    establishment.images?.banner?.[0] ||
+    establishment.images?.hero?.[0] ||
+    establishment.images?.todas?.[0] ||
+    establishment.image || // Fallback para compatibilidad
+    '/placeholder-restaurant.jpg';
+
   return (
     <div className="relative h-[300px] overflow-hidden">
       <ImageWithFallback
-        src={establishment.image}
+        src={bannerImage}
         alt={establishment.name}
         className="w-full h-full object-cover"
       />
@@ -125,7 +136,7 @@ function EstablishmentHeader({
 // Quick Info Bar Component
 function QuickInfoBar({ establishment, onReserveClick, isLoggedIn }: any) {
   return (
-    <div className="sticky top-16 z-40 bg-white border-b border-[#E2E8F0] shadow-sm">
+    <div className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-4">
@@ -138,7 +149,7 @@ function QuickInfoBar({ establishment, onReserveClick, isLoggedIn }: any) {
               closingTime={establishment.closingTime}
             />
             <div className="flex items-center gap-1 text-sm text-[#64748B]">
-              <MapPin size={16} />
+              <MapPin size={16} className="text-[#F97316]" />
               <span>
                 {establishment.address}, {establishment.commune}
               </span>
@@ -198,6 +209,48 @@ function InformacionTab({ establishment, hours, photos }: any) {
           </div>
         </div>
       </section>
+
+      {/* Redes Sociales */}
+      {establishment.redesSociales &&
+        establishment.redesSociales.length > 0 && (
+          <section>
+            <h2 className="text-[#334155] mb-3">Redes Sociales</h2>
+            <div className="flex flex-wrap gap-3">
+              {establishment.redesSociales.map((red: any, index: number) => {
+                const getIcon = () => {
+                  const tipo = red.tipo.toLowerCase();
+                  if (tipo.includes('instagram'))
+                    return <Instagram size={18} />;
+                  if (tipo.includes('facebook')) return <Facebook size={18} />;
+                  if (tipo.includes('twitter') || tipo.includes('x'))
+                    return <Twitter size={18} />;
+                  return null;
+                };
+
+                const icon = getIcon();
+
+                // Limpiar @ duplicadas del usuario
+                const usuario = red.usuario.startsWith('@')
+                  ? red.usuario.slice(1)
+                  : red.usuario;
+
+                return (
+                  <a
+                    key={index}
+                    href={red.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 bg-[#F1F5F9] hover:bg-[#E2E8F0] rounded-lg transition-colors text-[#334155] text-sm"
+                    title={`${red.tipo}: @${usuario}`}
+                  >
+                    {icon && <span className="text-[#F97316]">{icon}</span>}
+                    <span>@{usuario}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
       {/* Hours */}
       <section>
@@ -434,7 +487,7 @@ function OpinionesTab({
                       className={
                         star <= currentUserOpinion.rating
                           ? 'fill-[#F97316] text-[#F97316]'
-                          : 'text-[#E2E8F0]'
+                          : 'fill-[#FED7AA] text-[#FED7AA]'
                       }
                     />
                   ))}
@@ -466,7 +519,7 @@ function OpinionesTab({
                   className={
                     star <= (hoverRating || rating)
                       ? 'fill-[#F97316] text-[#F97316]'
-                      : 'text-[#E2E8F0]'
+                      : 'fill-[#FED7AA] text-[#FED7AA]'
                   }
                 />
               </button>
@@ -542,7 +595,7 @@ function OpinionesTab({
                           className={
                             star <= opinion.puntuacion
                               ? 'fill-[#F97316] text-[#F97316]'
-                              : 'text-[#E2E8F0]'
+                              : 'fill-[#FED7AA] text-[#FED7AA]'
                           }
                         />
                       ))}
@@ -1472,7 +1525,7 @@ export default function EstablishmentDetail() {
         isLoggedIn={isLoggedIn}
       />
 
-      <div className="sticky top-[120px] z-30 bg-white border-b border-[#E2E8F0]">
+      <div className="sticky top-12 z-30 bg-white border-b border-[#E2E8F0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <TabNavigation
             tabs={tabs}

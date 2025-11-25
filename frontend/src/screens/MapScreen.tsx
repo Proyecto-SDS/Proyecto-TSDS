@@ -17,9 +17,9 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 
 // Validar token de Mapbox
 if (!mapboxgl.accessToken) {
-  console.error('⚠️ MAPBOX TOKEN NO CONFIGURADO');
+  console.error('⚠MAPBOX TOKEN NO CONFIGURADO');
 } else {
-  console.log('✅ Mapbox token configurado correctamente');
+  console.log('Mapbox token configurado correctamente');
 }
 
 // Map center: Santiago, Chile
@@ -43,15 +43,15 @@ const SANTIAGO_BOUNDS: mapboxgl.LngLatBoundsLike = [
  * - Building number labels (números de edificios)
  *
  * Elementos que se mantienen visibles:
- * ✅ Transporte: Metro, buses, estaciones de tren
- * ✅ Aeropuertos y terminales
- * ✅ Lugares culturales: Museos, teatros, monumentos, galerías
- * ✅ Parques y áreas verdes
- * ✅ Lugares educativos y religiosos
- * ✅ Calles y carreteras (navegación)
- * ✅ Nombres de ciudades y países
- * ✅ Agua (ríos, lagos)
- * ✅ Tus marcadores personalizados
+ * Transporte: Metro, buses, estaciones de tren
+ * Aeropuertos y terminales
+ * Lugares culturales: Museos, teatros, monumentos, galerías
+ * Parques y áreas verdes
+ * Lugares educativos y religiosos
+ * Calles y carreteras (navegación)
+ * Nombres de ciudades y países
+ * Agua (ríos, lagos)
+ * Tus marcadores personalizados
  *
  * Límites del mapa:
  * - Restringido a Santiago y sus comunas
@@ -107,7 +107,7 @@ function SimpleMap({
     const initMap = () => {
       if (!mapContainer.current) return;
 
-      console.log('🗺️ Inicializando mapa Mapbox...');
+      console.log('🗺Inicializando mapa Mapbox...');
 
       mapRef.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -123,7 +123,7 @@ function SimpleMap({
       setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.resize();
-          console.log('✅ Mapa redimensionado');
+          console.log('Mapa redimensionado');
         }
       }, 100);
 
@@ -138,11 +138,11 @@ function SimpleMap({
         mapRef.current.on('load', () => {
           if (!mapRef.current) return;
 
-          console.log('🎨 Estilo del mapa cargado');
+          console.log('Estilo del mapa cargado');
 
           // Forzar resize del mapa para asegurar renderizado correcto
           mapRef.current.resize();
-          console.log('✅ Mapa redimensionado después de cargar estilo');
+          console.log('Mapa redimensionado después de cargar estilo');
 
           // Get all layers from the style
           const layers = mapRef.current.getStyle().layers;
@@ -243,9 +243,9 @@ function SimpleMap({
           });
 
           console.log(
-            '✅ Map loaded. Only restaurant/shop POI hidden. Transit, airports & culture visible.'
+            'Map loaded. Only restaurant/shop POI hidden. Transit, airports & culture visible.'
           );
-          console.log('📍 Map bounds:', SANTIAGO_BOUNDS);
+          console.log('Map bounds:', SANTIAGO_BOUNDS);
           console.log(
             '🎭 Visible: Transit, Airports, Museums, Parks, Cultural sites'
           );
@@ -254,7 +254,7 @@ function SimpleMap({
           setTimeout(() => {
             if (mapRef.current) {
               mapRef.current.resize();
-              console.log('✅ Resize final aplicado');
+              console.log('Resize final aplicado');
             }
           }, 200);
         });
@@ -506,7 +506,7 @@ function Sidebar({
                   </div>
 
                   <div className="flex items-center gap-1.5 mb-2">
-                    <MapPin size={11} className="text-[#F97316] shrink-0" />
+                    <MapPin className="text-[#F97316] shrink-0 w-3 h-3 md:w-4 md:h-4" />
                     <p className="text-xs text-[#334155]">
                       {est.address}, {est.commune}
                     </p>
@@ -627,7 +627,7 @@ function MobileDrawer({
         </div>
 
         {/* List */}
-        <div ref={listRef} className="flex-1 overflow-y-auto">
+        <div ref={listRef} className="flex-1 overflow-y-auto custom-scrollbar">
           {establishments.length === 0 ? (
             <div className="p-8 text-center">
               <MapPin size={48} className="text-[#CBD5E1] mx-auto mb-3" />
@@ -684,7 +684,7 @@ function MobileDrawer({
                     </div>
 
                     <div className="flex items-center gap-1.5 mb-2">
-                      <MapPin size={11} className="text-[#F97316] shrink-0" />
+                      <MapPin className="text-[#F97316] shrink-0 w-3 h-3 md:w-4 md:h-4" />
                       <p className="text-xs text-[#334155]">
                         {est.address}, {est.commune}
                       </p>
@@ -929,65 +929,6 @@ export default function MapScreen() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       />
-
-      {/* Custom CSS */}
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
-        }
-
-        /* Custom Scrollbar Design */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #F1F5F9;
-          border-radius: 10px;
-          margin: 4px 0;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, #F97316 0%, #EA580C 100%);
-          border-radius: 10px;
-          border: 2px solid #F1F5F9;
-          transition: all 0.3s ease;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(180deg, #EA580C 0%, #C2410C 100%);
-          border-color: #E2E8F0;
-          box-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:active {
-          background: #C2410C;
-        }
-
-        /* Firefox */
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #F97316 #F1F5F9;
-        }
-      `}</style>
     </div>
   );
 }

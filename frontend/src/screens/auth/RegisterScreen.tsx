@@ -11,7 +11,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { register, isLoggedIn } = useAuth();
   const { toast, showToast, hideToast } = useToast();
-  
+
   const [formData, setFormData] = useState({
     nombre: '',
     correo: '',
@@ -109,10 +109,10 @@ export default function RegisterScreen() {
   };
 
   const handleChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -159,7 +159,10 @@ export default function RegisterScreen() {
                   Nombre completo
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={20} />
+                  <User
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                    size={20}
+                  />
                   <input
                     type="text"
                     id="nombre"
@@ -170,15 +173,18 @@ export default function RegisterScreen() {
                       w-full pl-10 pr-3 py-2 border rounded-xl
                       transition-all duration-200
                       focus:outline-none focus:ring-2
-                      ${errors.nombre 
-                        ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20' 
-                        : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
+                      ${
+                        errors.nombre
+                          ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20'
+                          : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
                       }
                     `}
                   />
                 </div>
                 {errors.nombre && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.nombre}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.nombre}
+                  </p>
                 )}
               </div>
 
@@ -188,7 +194,10 @@ export default function RegisterScreen() {
                   Correo electrónico
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={20} />
+                  <Mail
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                    size={20}
+                  />
                   <input
                     type="email"
                     id="correo"
@@ -199,28 +208,34 @@ export default function RegisterScreen() {
                       w-full pl-10 pr-3 py-2 border rounded-xl
                       transition-all duration-200
                       focus:outline-none focus:ring-2
-                      ${errors.correo 
-                        ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20' 
-                        : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
+                      ${
+                        errors.correo
+                          ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20'
+                          : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
                       }
                     `}
                   />
                 </div>
                 {errors.correo && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.correo}</p>
-                )}
-                {errors.correo && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">{errors.correo}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.correo}
+                  </p>
                 )}
               </div>
 
               {/* Phone */}
               <div>
-                <label htmlFor="telefono" className="block mb-1.5 text-[#334155]">
+                <label
+                  htmlFor="telefono"
+                  className="block mb-1.5 text-[#334155]"
+                >
                   Teléfono
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={20} />
+                  <Phone
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                    size={20}
+                  />
                   <input
                     type="tel"
                     id="telefono"
@@ -231,28 +246,34 @@ export default function RegisterScreen() {
                       w-full pl-10 pr-3 py-2 border rounded-xl
                       transition-all duration-200
                       focus:outline-none focus:ring-2
-                      ${errors.telefono 
-                        ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20' 
-                        : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
+                      ${
+                        errors.telefono
+                          ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20'
+                          : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
                       }
                     `}
                   />
                 </div>
                 {errors.telefono && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.telefono}</p>
-                )}
-                {errors.telefono && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">{errors.telefono}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.telefono}
+                  </p>
                 )}
               </div>
 
               {/* Password */}
               <div>
-                <label htmlFor="contrasena" className="block mb-1.5 text-[#334155]">
+                <label
+                  htmlFor="contrasena"
+                  className="block mb-1.5 text-[#334155]"
+                >
                   Contraseña
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={20} />
+                  <Lock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                    size={20}
+                  />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="contrasena"
@@ -263,9 +284,10 @@ export default function RegisterScreen() {
                       w-full pl-10 pr-10 py-2 border rounded-xl
                       transition-all duration-200
                       focus:outline-none focus:ring-2
-                      ${errors.contrasena 
-                        ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20' 
-                        : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
+                      ${
+                        errors.contrasena
+                          ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20'
+                          : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
                       }
                     `}
                   />
@@ -273,39 +295,49 @@ export default function RegisterScreen() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] transition-colors"
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-label={
+                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    }
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {errors.contrasena && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.contrasena}</p>
-                )}
-                {errors.contrasena && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">{errors.contrasena}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.contrasena}
+                  </p>
                 )}
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmarContrasena" className="block mb-1.5 text-[#334155]">
+                <label
+                  htmlFor="confirmarContrasena"
+                  className="block mb-1.5 text-[#334155]"
+                >
                   Confirmar contraseña
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" size={20} />
+                  <Lock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]"
+                    size={20}
+                  />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmarContrasena"
                     value={formData.confirmarContrasena}
-                    onChange={(e) => handleChange('confirmarContrasena', e.target.value)}
+                    onChange={(e) =>
+                      handleChange('confirmarContrasena', e.target.value)
+                    }
                     placeholder="••••••••"
                     className={`
                       w-full pl-10 pr-10 py-2 border rounded-xl
                       transition-all duration-200
                       focus:outline-none focus:ring-2
-                      ${errors.confirmarContrasena 
-                        ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20' 
-                        : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
+                      ${
+                        errors.confirmarContrasena
+                          ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20'
+                          : 'border-[#E2E8F0] focus:border-[#F97316] focus:ring-[#F97316]/20'
                       }
                     `}
                   />
@@ -313,16 +345,23 @@ export default function RegisterScreen() {
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] transition-colors"
-                    aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-label={
+                      showConfirmPassword
+                        ? 'Ocultar contraseña'
+                        : 'Mostrar contraseña'
+                    }
                   >
-                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
                   </button>
                 </div>
                 {errors.confirmarContrasena && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.confirmarContrasena}</p>
-                )}
-                {errors.confirmarContrasena && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">{errors.confirmarContrasena}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.confirmarContrasena}
+                  </p>
                 )}
               </div>
 
@@ -332,7 +371,9 @@ export default function RegisterScreen() {
                   <input
                     type="checkbox"
                     checked={formData.aceptaTerminos}
-                    onChange={(e) => handleChange('aceptaTerminos', e.target.checked)}
+                    onChange={(e) =>
+                      handleChange('aceptaTerminos', e.target.checked)
+                    }
                     className="mt-1 w-4 h-4 text-[#F97316] border-[#E2E8F0] rounded focus:ring-2 focus:ring-[#F97316]/20"
                   />
                   <span className="text-sm text-[#64748B]">
@@ -340,10 +381,9 @@ export default function RegisterScreen() {
                   </span>
                 </label>
                 {errors.aceptaTerminos && (
-                  <p className="mt-1.5 text-sm text-[#EF4444]">{errors.aceptaTerminos}</p>
-                )}
-                {errors.aceptaTerminos && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">{errors.aceptaTerminos}</p>
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
+                    {errors.aceptaTerminos}
+                  </p>
                 )}
               </div>
 
@@ -376,7 +416,8 @@ export default function RegisterScreen() {
             <div className="text-center">
               <h2 className="text-[#334155] mb-4">Únete a nuestra comunidad</h2>
               <p className="text-[#64748B] mb-6">
-                Más de 1,000 usuarios ya disfrutan de la mejor experiencia gastronómica en Santiago.
+                Más de 1,000 usuarios ya disfrutan de la mejor experiencia
+                gastronómica en Santiago.
               </p>
               <div className="w-full h-64 bg-linear-to-br from-[#F97316]/10 to-[#EF4444]/10 rounded-2xl flex items-center justify-center">
                 <div className="w-32 h-32 bg-linear-to-r from-[#F97316] to-[#EF4444] rounded-full opacity-20"></div>

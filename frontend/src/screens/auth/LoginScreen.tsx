@@ -126,7 +126,7 @@ export default function LoginScreen() {
             {/* Demo credentials notice */}
             <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Demo:</strong> maria@test.cl / test123
+                <strong>Prueba:</strong> maria@test.cl / test123
               </p>
             </div>
 
@@ -160,7 +160,7 @@ export default function LoginScreen() {
                   />
                 </div>
                 {errors.correo && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
                     {errors.correo}
                   </p>
                 )}
@@ -207,7 +207,7 @@ export default function LoginScreen() {
                   </button>
                 </div>
                 {errors.contrasena && (
-                  <p className="mt-1.5 text-xs text-[#EF4444]">
+                  <p className="mt-1.5 text-sm text-[#EF4444]">
                     {errors.contrasena}
                   </p>
                 )}

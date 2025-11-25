@@ -78,6 +78,7 @@ export function Modal({
           shadow-xl
           max-h-[90vh]
           overflow-y-auto
+          custom-scrollbar
         `}
       >
         {/* Header */}

@@ -568,8 +568,8 @@ def seed_database():
         else:
             print("  ⊘ Encomiendas ya existen, saltando...")
         
-        print("\n✅ Base de datos poblada exitosamente con datos completos!")
-        print("\n📊 Resumen de datos insertados:")
+        print("\nBase de datos poblada exitosamente con datos completos!")
+        print("\nResumen de datos insertados:")
         print(f"   • Roles: {db.query(Rol).count()}")
         print(f"   • Usuarios: {db.query(Usuario).count()}")
         print(f"   • Locales: {db.query(Local).count()}")
@@ -581,7 +581,7 @@ def seed_database():
         print(f"   • Pagos: {db.query(Pago).count()}")
         
     except Exception as e:
-        print(f"\n❌ Error al poblar la base de datos: {e}")
+        print(f"\nError al poblar la base de datos: {e}")
         import traceback
         traceback.print_exc()
         db.rollback()

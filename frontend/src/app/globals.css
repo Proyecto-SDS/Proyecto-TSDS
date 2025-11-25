@@ -194,3 +194,87 @@ input[type='date']:focus::-webkit-datetime-edit {
 input[type='date']::-webkit-calendar-picker-indicator:hover {
   background-color: transparent;
 }
+
+/* ===================================
+   SCROLLBAR STYLES - ReservaYa
+   =================================== */
+
+/* Scrollbar para navegadores Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #f97316,
+    #ef4444
+  ); /* orange-500 to red-500 */
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #ea580c,
+    #dc2626
+  ); /* orange-600 to red-600 */
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(
+    180deg,
+    #c2410c,
+    #b91c1c
+  ); /* orange-700 to red-700 */
+}
+
+/* Ocultar botones de flechas en los extremos */
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Scrollbar para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #f97316 transparent; /* thumb: orange-500, track: transparent */
+}
+
+/* Scrollbar específico para áreas de contenido con fondo claro */
+.scrollbar-light::-webkit-scrollbar-thumb {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Scrollbar para áreas de contenido oscuro */
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #fb923c, #f87171);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f97316, #ef4444);
+}
+
+/* Scrollbar sutil para modales y componentes pequeños */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+/* Ocultar scrollbar pero mantener funcionalidad (para casos específicos) */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
