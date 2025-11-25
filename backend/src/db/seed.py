@@ -273,12 +273,32 @@ def seed_database():
         # ============ Mesas ============
         if db.query(Mesa).count() == 0:
             print("  → Insertando Mesas de ejemplo...")
-            # Mesas para Local 1
+            # Mesas para Local 1 - El Gran Sabor (10 mesas de 4 personas)
             for i in range(1, 11):
                 db.add(Mesa(id_local=1, nombre=f"Mesa {i}", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
-            # Mesas para Local 2
+            # Mesas para Local 2 - Bar La Terraza (5 mesas de 6 personas)
             for i in range(1, 6):
                 db.add(Mesa(id_local=2, nombre=f"Mesa {i}", capacidad=6, estado=EstadoMesaEnum.DISPONIBLE))
+            # Mesas para Local 3 - Restobar del Parque (8 mesas variadas)
+            db.add(Mesa(id_local=3, nombre="Mesa 1", capacidad=2, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 2", capacidad=2, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 3", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 4", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 5", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 6", capacidad=6, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 7", capacidad=6, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=3, nombre="Mesa 8", capacidad=8, estado=EstadoMesaEnum.DISPONIBLE))
+            # Mesas para Local 4 - Rincón Peruano (7 mesas)
+            for i in range(1, 8):
+                capacidad = 4 if i <= 5 else 6
+                db.add(Mesa(id_local=4, nombre=f"Mesa {i}", capacidad=capacidad, estado=EstadoMesaEnum.DISPONIBLE))
+            # Mesas para Local 5 - The Old Pub (6 mesas)
+            db.add(Mesa(id_local=5, nombre="Mesa 1", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=5, nombre="Mesa 2", capacidad=4, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=5, nombre="Mesa 3", capacidad=6, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=5, nombre="Mesa 4", capacidad=6, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=5, nombre="Barra 1", capacidad=2, estado=EstadoMesaEnum.DISPONIBLE))
+            db.add(Mesa(id_local=5, nombre="Barra 2", capacidad=2, estado=EstadoMesaEnum.DISPONIBLE))
             db.commit()
             print("    ✓ Mesas insertadas")
         else:
@@ -287,23 +307,24 @@ def seed_database():
         # ============ Usuarios ============
         if db.query(Usuario).count() == 0:
             print("  → Insertando Usuarios de ejemplo...")
-            # Hash simple para pruebas (en producción usar bcrypt)
+            # Hash para password: test123
+            password_hash = "$2b$12$q6myteznSC8775D4zt/e6OnPZVMv4jxV9ejhmMRpubGnVA1lecciO"
             db.add_all([
                 Usuario(id_rol=1, nombre="Admin Test", correo="admin@test.cl", 
-                       contrasena="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYfQYgBxS5i", 
-                       telefono="+56912345678"),
+                       contrasena=password_hash, 
+                       telefono="912345678"),
                 Usuario(id_rol=5, nombre="Juan Pérez", correo="juan@test.cl", 
-                       contrasena="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYfQYgBxS5i", 
-                       telefono="+56987654321"),
+                       contrasena=password_hash, 
+                       telefono="987654321"),
                 Usuario(id_rol=5, nombre="María González", correo="maria@test.cl", 
-                       contrasena="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYfQYgBxS5i", 
-                       telefono="+56955556666"),
+                       contrasena=password_hash, 
+                       telefono="955556666"),
                 Usuario(id_rol=4, nombre="Carlos Mesero", correo="mesero@test.cl", 
-                       contrasena="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYfQYgBxS5i", 
-                       telefono="+56944443333"),
+                       contrasena=password_hash, 
+                       telefono="944443333"),
                 Usuario(id_rol=3, nombre="Ana Chef", correo="chef@test.cl", 
-                       contrasena="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYfQYgBxS5i", 
-                       telefono="+56933332222"),
+                       contrasena=password_hash, 
+                       telefono="933332222"),
             ])
             db.commit()
             print("    ✓ Usuarios insertados (password: test123)")
@@ -385,11 +406,11 @@ def seed_database():
         if db.query(Opinion).count() == 0:
             print("  → Insertando Opiniones de ejemplo...")
             db.add_all([
-                Opinion(id_usuario=2, id_local=1, puntuacion=4.5, 
+                Opinion(id_usuario=2, id_local=1, puntuacion=5, 
                        comentario="Excelente comida y muy buen servicio. Recomendado!"),
-                Opinion(id_usuario=3, id_local=1, puntuacion=5.0, 
+                Opinion(id_usuario=3, id_local=1, puntuacion=3, 
                        comentario="El mejor lomo a lo pobre de Santiago!"),
-                Opinion(id_usuario=2, id_local=2, puntuacion=4.0, 
+                Opinion(id_usuario=2, id_local=2, puntuacion=4, 
                        comentario="Buen ambiente, música en vivo los fines de semana."),
             ])
             db.commit()

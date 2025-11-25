@@ -30,12 +30,24 @@ export async function apiCall(endpoint: string, options: ApiCallOptions = {}) {
     // Handle non-OK responses
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `API error: ${response.status}`);
+      const errorMessage =
+        errorData.error || errorData.message || `API error: ${response.status}`;
+      const error = new Error(errorMessage);
+      (error as any).status = response.status;
+      throw error;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('API call error:', error);
+    // No mostrar error en consola para 404 en endpoints de opinión de usuario (comportamiento esperado)
+    const is404 = (error as any).status === 404;
+    const isUserOpinionEndpoint =
+      endpoint.includes('/opiniones/') && endpoint.includes('/user');
+
+    if (!(is404 && isUserOpinionEndpoint)) {
+      console.error('API call error:', error);
+    }
+
     throw error;
   }
 }
@@ -47,9 +59,9 @@ export const api = {
 
   getEstablishment: (id: string) => apiCall(`/api/locales/${id}`),
 
-  // Auth endpoints
+  // Auth endpoints - /api/auth/
   login: (correo: string, contrasena: string) =>
-    apiCall('/api/login', {
+    apiCall('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ correo, contrasena }),
     }),
@@ -60,77 +72,71 @@ export const api = {
     telefono: string,
     contrasena: string
   ) =>
-    apiCall('/api/register', {
+    apiCall('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ nombre, correo, telefono, contrasena }),
     }),
 
   logout: () =>
-    apiCall('/api/logout', {
+    apiCall('/api/auth/logout', {
       method: 'POST',
     }),
 
-  // User endpoints
-  getProfile: () => apiCall('/api/profile'),
+  // User endpoints - /api/auth/profile
+  getProfile: () => apiCall('/api/auth/profile'),
 
   updateProfile: (nombre: string, telefono: string) =>
-    apiCall('/api/profile', {
+    apiCall('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify({ nombre, telefono }),
     }),
 
-  getEstablishmentById: (id: string) => apiCall(`/api/establecimientos/${id}`),
+  // Establishment detail endpoints - /api/locales/{id}/
+  getEstablishmentProducts: (id: string) =>
+    apiCall(`/api/locales/${id}/productos`),
 
-  getEstablishmentHours: (id: string) =>
-    apiCall(`/api/establecimientos/${id}/horario`),
+  getEstablishmentTables: (id: string) => apiCall(`/api/locales/${id}/mesas`),
 
-  getEstablishmentPhotos: (id: string) =>
-    apiCall(`/api/establecimientos/${id}/fotos`),
-
-  getEstablishmentMenu: (id: string) =>
-    apiCall(`/api/establecimientos/${id}/productos`),
+  getEstablishmentReservations: (id: string, fecha: string) =>
+    apiCall(`/api/locales/${id}/reservas?fecha=${fecha}`),
 
   // Opinion endpoints
-  getOpinions: (id: string, page: number = 1, limit: number = 10) =>
-    apiCall(
-      `/api/establecimientos/${id}/opiniones?page=${page}&limit=${limit}`
-    ),
+  getEstablishmentOpinions: (
+    id: string,
+    page: number = 1,
+    limit: number = 10
+  ) => apiCall(`/api/locales/${id}/opiniones?page=${page}&limit=${limit}`),
 
-  getUserOpinion: (id: string) =>
-    apiCall(`/api/establecimientos/${id}/opiniones/user`),
+  getUserOpinionForEstablishment: (id: string) =>
+    apiCall(`/api/opiniones/${id}/user`),
 
-  createOpinion: (id: string, puntuacion: number, comentario: string) =>
-    apiCall('/api/opiniones', {
+  createOpinion: (localId: string, puntuacion: number, comentario: string) =>
+    apiCall('/api/opiniones/', {
       method: 'POST',
-      body: JSON.stringify({ id_local: id, puntuacion, comentario }),
+      body: JSON.stringify({ localId, puntuacion, comentario }),
     }),
 
-  // Reservation endpoints
-  getTables: (id: string) => apiCall(`/api/establecimientos/${id}/mesas`),
-
-  getReservations: (id: string, fecha: string) =>
-    apiCall(`/api/establecimientos/${id}/reservas?fecha=${fecha}`),
-
+  // Reservation endpoints - /api/reservas/
   createReservation: (
-    id_local: string,
-    id_mesa: string,
-    fecha_reserva: string,
-    hora_reserva: string,
-    numero_personas: number,
-    notas?: string
+    localId: string,
+    mesaId: string,
+    fecha: string,
+    hora: string,
+    numeroPersonas: number
   ) =>
-    apiCall('/api/reservas', {
+    apiCall('/api/reservas/', {
       method: 'POST',
       body: JSON.stringify({
-        id_local,
-        id_mesa,
-        fecha_reserva,
-        hora_reserva,
-        numero_personas,
-        notas,
+        localId,
+        mesaId,
+        fecha,
+        hora,
+        numeroPersonas,
       }),
     }),
 
-  // Commune endpoints
-  getCommunes: () => apiCall('/api/comunas'),
+  getMyReservations: () => apiCall('/api/reservas/mis-reservas'),
+
+  // Opinion endpoints - user opinions
+  getMyOpinions: () => apiCall('/api/opiniones/mis-opiniones'),
 };

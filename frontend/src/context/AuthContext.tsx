@@ -1,15 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-export interface User {
-  id: string;
-  nombre: string;
-  correo: string;
-  telefono?: string;
-  creado_el: string;
-  rol?: string;
-}
+import type { User } from '../types';
+import { api } from '../utils/apiClient';
 
 interface AuthContextType {
   user: User | null;
@@ -77,45 +70,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     contrasena: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Mock API call - replace with real API
-      // const res = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ correo, contrasena }),
-      // });
+      // Call real API
+      const response = await api.login(correo, contrasena);
 
-      // Mock authentication - hardcoded for demo
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-      if (correo === 'demo@reservaya.cl' && contrasena === 'demo123') {
-        const mockUser: User = {
-          id: '1',
-          nombre: 'Usuario Demo',
-          correo: 'demo@reservaya.cl',
-          telefono: '+56912345678',
-          creado_el: new Date().toISOString(),
-          rol: 'usuario',
+      if (response.token && response.user) {
+        const userData: User = {
+          id: response.user.id,
+          name: response.user.nombre,
+          email: response.user.correo,
+          phone: response.user.telefono,
         };
 
-        const mockToken = 'mock_jwt_token_' + Date.now();
-
         if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', mockToken);
-          localStorage.setItem('auth_user', JSON.stringify(mockUser));
+          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('auth_user', JSON.stringify(userData));
         }
 
-        setUser(mockUser);
+        setUser(userData);
         setIsLoggedIn(true);
 
         return { success: true };
       } else {
-        return { success: false, error: 'Correo o contraseña incorrectos' };
+        return {
+          success: false,
+          error: response.error || 'Error en el login',
+        };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       return {
         success: false,
-        error: 'Error al iniciar sesión. Intenta nuevamente.',
+        error: error.message || 'Error al iniciar sesión. Intenta nuevamente.',
       };
     }
   };
@@ -127,39 +112,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     contrasena: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Mock API call - replace with real API
-      // const res = await fetch('/api/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ nombre, correo, telefono, contrasena }),
-      // });
+      // Call real API
+      const response = await api.register(nombre, correo, telefono, contrasena);
 
-      // Mock registration
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-      // Check if email already exists (mock check)
-      const existingEmails = ['existente@example.com'];
-      if (existingEmails.includes(correo)) {
-        return { success: false, error: 'Este correo ya está registrado' };
+      if (response.success) {
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: response.error || 'Error al registrar',
+        };
       }
-
-      return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
       return {
         success: false,
-        error: 'Error al crear la cuenta. Intenta nuevamente.',
+        error: error.message || 'Error al crear la cuenta. Intenta nuevamente.',
       };
     }
   };
 
-  const logout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
+  const logout = async () => {
+    try {
+      // Call real API logout
+      await api.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local storage regardless of API response
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+      }
+      setUser(null);
+      setIsLoggedIn(false);
     }
-    setUser(null);
-    setIsLoggedIn(false);
   };
 
   const updateProfile = async (
@@ -167,21 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     telefono: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Mock API call - replace with real API
-      // const token = localStorage.getItem('auth_token');
-      // const res = await fetch('/api/profile', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify({ nombre, telefono }),
-      // });
+      // Call real API
+      const response = await api.updateProfile(nombre, telefono);
 
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (response.success && response.user) {
+        const updatedUser: User = {
+          id: response.user.id,
+          name: response.user.nombre,
+          email: response.user.correo,
+          phone: response.user.telefono,
+        };
 
-      if (user) {
-        const updatedUser = { ...user, nombre, telefono };
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_user', JSON.stringify(updatedUser));
         }
@@ -189,10 +172,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true };
       }
 
-      return { success: false, error: 'Usuario no encontrado' };
-    } catch (error) {
+      return {
+        success: false,
+        error: response.error || 'Error al actualizar perfil',
+      };
+    } catch (error: any) {
       console.error('Update profile error:', error);
-      return { success: false, error: 'Error al actualizar perfil' };
+      return {
+        success: false,
+        error: error.message || 'Error al actualizar perfil',
+      };
     }
   };
 

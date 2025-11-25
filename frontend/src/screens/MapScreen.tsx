@@ -453,7 +453,18 @@ function Sidebar({
                     )}
                   </div>
 
-                  <p className="text-xs text-[#64748B]">{est.commune}</p>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <MapPin size={11} className="text-[#F97316] shrink-0" />
+                    <p className="text-xs text-[#334155]">
+                      {est.address}, {est.commune}
+                    </p>
+                  </div>
+
+                  {est.description && (
+                    <p className="text-xs text-[#64748B] italic line-clamp-2 leading-relaxed">
+                      {est.description}
+                    </p>
+                  )}
                 </button>
 
                 {/* Botón para navegar al perfil */}
@@ -620,7 +631,18 @@ function MobileDrawer({
                       )}
                     </div>
 
-                    <p className="text-xs text-[#64748B]">{est.commune}</p>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <MapPin size={11} className="text-[#F97316] shrink-0" />
+                      <p className="text-xs text-[#334155]">
+                        {est.address}, {est.commune}
+                      </p>
+                    </div>
+
+                    {est.description && (
+                      <p className="text-xs text-[#64748B] italic line-clamp-2 leading-relaxed">
+                        {est.description}
+                      </p>
+                    )}
                   </button>
 
                   {/* Botón para navegar al perfil */}
@@ -678,6 +700,7 @@ export default function MapScreen() {
           commune: item.commune,
           phone: item.phone,
           email: item.email,
+          description: item.description,
           image:
             item.image ||
             'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',

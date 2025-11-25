@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy.orm import joinedload
 from database import db_session
-from models import Local, Direccion, Comuna, TipoLocal, Horario, Foto, Opinion, TipoFoto, Redes, TipoRed
+from models import Local, Direccion, Comuna, TipoLocal, Horario, Foto, Opinion, TipoFoto, Redes, TipoRed, Producto, Categoria, Mesa
 from datetime import datetime, time
 
 # Crear el Blueprint
@@ -235,6 +235,212 @@ def obtener_local(id):
         }
         
         return jsonify(local_data), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@locales_bp.route('/<int:id>/productos', methods=['GET'])
+def obtener_productos_local(id):
+    """Obtiene el menú de productos de un local agrupados por categoría."""
+    try:
+        # Verificar que el local existe
+        local = db_session.query(Local).filter(Local.id == id).first()
+        if not local:
+            return jsonify({"error": "Local no encontrado"}), 404
+        
+        # Obtener productos del local con categoría
+        productos = db_session.query(Producto)\
+            .options(
+                joinedload(Producto.categoria),
+                joinedload(Producto.fotos).joinedload(Foto.tipo_foto)
+            )\
+            .filter(Producto.id_local == id)\
+            .all()
+        
+        # Agrupar productos por categoría
+        categorias_dict = {}
+        for producto in productos:
+            categoria_nombre = producto.categoria.nombre if producto.categoria else 'Sin Categoría'
+            
+            if categoria_nombre not in categorias_dict:
+                categorias_dict[categoria_nombre] = {
+                    'id': str(producto.categoria.id) if producto.categoria else '0',
+                    'nombre': categoria_nombre,
+                    'productos': []
+                }
+            
+            # Obtener imagen del producto
+            imagen = None
+            if producto.fotos:
+                imagen = producto.fotos[0].ruta
+            
+            categorias_dict[categoria_nombre]['productos'].append({
+                'id': str(producto.id),
+                'nombre': producto.nombre,
+                'descripcion': producto.descripcion,
+                'precio': producto.precio,
+                'estado': producto.estado.value if producto.estado else 'disponible',
+                'imagen': imagen
+            })
+        
+        # Convertir a lista
+        categorias_lista = list(categorias_dict.values())
+        
+        return jsonify({
+            'localId': str(id),
+            'localNombre': local.nombre,
+            'categorias': categorias_lista
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@locales_bp.route('/<int:id>/opiniones', methods=['GET'])
+def obtener_opiniones_local(id):
+    """Obtiene opiniones de un local con paginación."""
+    try:
+        # Verificar que el local existe
+        local = db_session.query(Local).filter(Local.id == id).first()
+        if not local:
+            return jsonify({"error": "Local no encontrado"}), 404
+        
+        # Parámetros de paginación
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', 10, type=int)
+        
+        # Validar parámetros
+        if page < 1:
+            page = 1
+        if limit < 1 or limit > 50:
+            limit = 10
+        
+        # Query de opiniones con paginación
+        offset = (page - 1) * limit
+        
+        opiniones_query = db_session.query(Opinion)\
+            .options(joinedload(Opinion.usuario))\
+            .filter(Opinion.id_local == id, Opinion.eliminado_el.is_(None))\
+            .order_by(Opinion.creado_el.desc())
+        
+        total = opiniones_query.count()
+        opiniones = opiniones_query.offset(offset).limit(limit).all()
+        
+        # Formatear opiniones
+        opiniones_lista = []
+        for opinion in opiniones:
+            opiniones_lista.append({
+                'id': opinion.id,
+                'usuario': opinion.usuario.nombre if opinion.usuario else 'Anónimo',
+                'usuarioId': str(opinion.id_usuario) if opinion.id_usuario else None,
+                'puntuacion': float(opinion.puntuacion) if opinion.puntuacion else None,
+                'comentario': opinion.comentario,
+                'fecha': opinion.creado_el.isoformat() if opinion.creado_el else None
+            })
+        
+        return jsonify({
+            'opiniones': opiniones_lista,
+            'total': total,
+            'page': page,
+            'limit': limit,
+            'totalPages': (total + limit - 1) // limit
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@locales_bp.route('/<int:id>/mesas', methods=['GET'])
+def obtener_mesas_local(id):
+    """Obtiene las mesas de un local."""
+    try:
+        # Verificar que el local existe
+        local = db_session.query(Local).filter(Local.id == id).first()
+        if not local:
+            return jsonify({"error": "Local no encontrado"}), 404
+        
+        # Obtener mesas del local
+        mesas = db_session.query(Mesa)\
+            .filter(Mesa.id_local == id)\
+            .order_by(Mesa.nombre)\
+            .all()
+        
+        # Formatear mesas
+        mesas_lista = []
+        for mesa in mesas:
+            mesas_lista.append({
+                'id': str(mesa.id),
+                'nombre': mesa.nombre,
+                'capacidad': mesa.capacidad,
+                'estado': mesa.estado.value if mesa.estado else 'disponible'
+            })
+        
+        return jsonify({
+            'localId': str(id),
+            'mesas': mesas_lista
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@locales_bp.route('/<int:id>/reservas', methods=['GET'])
+def obtener_reservas_local(id):
+    """Obtiene las reservas de un local para una fecha específica."""
+    try:
+        from models import Reserva, ReservaMesa
+        
+        # Verificar que el local existe
+        local = db_session.query(Local).filter(Local.id == id).first()
+        if not local:
+            return jsonify({"error": "Local no encontrado"}), 404
+        
+        # Parámetro de fecha (formato: YYYY-MM-DD)
+        fecha_str = request.args.get('fecha')
+        if not fecha_str:
+            return jsonify({"error": "Parámetro 'fecha' es requerido (formato: YYYY-MM-DD)"}), 400
+        
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({"error": "Formato de fecha inválido. Use: YYYY-MM-DD"}), 400
+        
+        # Obtener reservas del local para esa fecha
+        reservas = db_session.query(Reserva)\
+            .options(joinedload(Reserva.reservas_mesa).joinedload(ReservaMesa.mesa))\
+            .filter(
+                Reserva.id_local == id,
+                Reserva.fecha_reserva == fecha,
+                Reserva.estado.in_(['pendiente', 'confirmada'])
+            )\
+            .all()
+        
+        # Formatear reservas con mesas ocupadas
+        reservas_lista = []
+        for reserva in reservas:
+            for reserva_mesa in reserva.reservas_mesa:
+                reservas_lista.append({
+                    'id': reserva.id,
+                    'mesaId': str(reserva_mesa.mesa.id),
+                    'mesaNombre': reserva_mesa.mesa.nombre,
+                    'horaReserva': reserva.hora_reserva.strftime('%H:%M') if reserva.hora_reserva else None,
+                    'estado': reserva.estado.value
+                })
+        
+        return jsonify({
+            'localId': str(id),
+            'fecha': fecha_str,
+            'reservas': reservas_lista
+        }), 200
         
     except Exception as e:
         import traceback

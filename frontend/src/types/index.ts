@@ -63,6 +63,83 @@ export interface Reservation {
   specialRequests?: string;
 }
 
+// Extended types for detailed establishment views
+
+export interface MenuItemCategory {
+  id: string;
+  nombre: string;
+  productos: MenuItem[];
+}
+
+export interface MenuItem {
+  id: string;
+  nombre: string;
+  descripcion?: string;
+  precio: number;
+  estado: 'disponible' | 'agotado' | 'inactivo';
+  imagen?: string;
+}
+
+export interface Schedule {
+  dia: string;
+  diaNumero: number;
+  apertura: string;
+  cierre: string;
+  abierto: boolean;
+  tipo: 'normal' | 'especial' | 'evento' | 'cerrado';
+}
+
+export interface SocialNetwork {
+  tipo: string;
+  usuario: string;
+  url: string;
+}
+
+export interface Review {
+  id: number;
+  usuario: string;
+  usuarioId?: string;
+  puntuacion: number;
+  comentario: string;
+  fecha: string;
+}
+
+export interface UserOpinion {
+  id: number;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+export interface DetailedEstablishment extends Establishment {
+  images: {
+    banner: string[];
+    hero: string[];
+    logo: string | null;
+    galeria: string[];
+    todas: string[];
+  };
+  horarios: Schedule[];
+  redesSociales: SocialNetwork[];
+  reviews?: Review[];
+}
+
+export interface MesaInfo {
+  id: string;
+  nombre: string;
+  capacidad: number;
+  estado: 'disponible' | 'reservada' | 'ocupada' | 'fuera_de_servicio';
+}
+
+export interface ReservaInfo {
+  id: number;
+  mesaId: string;
+  mesaNombre: string;
+  horaReserva: string;
+  estado: string;
+}
+
 // Component Props Types
 
 export interface ButtonSize {

@@ -74,11 +74,11 @@ export function NavHeader() {
                 >
                   <div className="w-8 h-8 rounded-full bg-[#F97316] flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
-                      {user.nombre.charAt(0).toUpperCase()}
+                      {user.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <span className="text-sm text-[#334155] font-medium">
-                    {user.nombre}
+                    {user.name}
                   </span>
                 </button>
                 <button
@@ -122,11 +122,11 @@ export function NavHeader() {
                 >
                   <div className="w-8 h-8 rounded-full bg-[#F97316] flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
-                      {user.nombre.charAt(0).toUpperCase()}
+                      {user.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <span className="text-sm text-[#334155] font-medium">
-                    {user.nombre}
+                    {user.name}
                   </span>
                 </button>
                 <button

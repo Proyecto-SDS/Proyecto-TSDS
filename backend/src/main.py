@@ -23,7 +23,14 @@ def create_app():
 
     # Registrar Blueprints (Rutas)
     from routes import locales_bp
+    from routes.auth import auth_bp
+    from routes.opiniones import opiniones_bp
+    from routes.reservas import reservas_bp
+    
     app.register_blueprint(locales_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(opiniones_bp)
+    app.register_blueprint(reservas_bp)
 
     return app
 

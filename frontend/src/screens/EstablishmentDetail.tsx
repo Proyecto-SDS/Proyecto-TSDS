@@ -22,167 +22,51 @@ import { SecondaryButton } from '../components/buttons/SecondaryButton';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { TabNavigation } from '../components/navigation/TabNavigation';
 import { useAuth } from '../context/AuthContext';
-import type { Establishment, Rating, TabItem } from '../types';
+import type {
+  DetailedEstablishment,
+  MesaInfo,
+  Review,
+  TabItem,
+  UserOpinion,
+} from '../types';
+import { api } from '../utils/apiClient';
 import { formatPhoneNumber, getRelativeTime } from '../utils/formatters';
 
-// Mock data
-const MOCK_ESTABLISHMENT: Establishment = {
-  id: '1',
-  name: 'La Buena Mesa',
-  type: 'Restaurante',
-  address: 'Av. Providencia 1234',
-  commune: 'Providencia',
-  phone: '+56912345678',
-  email: 'contacto@labuena.cl',
-  description:
-    'Restaurante de comida mediterránea con ambiente acogedor y una carta variada. Especialidad en pastas artesanales y carnes a la parrilla.',
-  image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200',
-  rating: 4.7,
-  reviewCount: 128,
-  status: 'open',
-  closingTime: '23:00',
+// Función para generar slots de tiempo cada 15 minutos
+const generateTimeSlots = (startTime: string, endTime: string): string[] => {
+  const slots: string[] = [];
+  const [startHour, startMin] = startTime.split(':').map(Number);
+  const [endHour, endMin] = endTime.split(':').map(Number);
+
+  let currentHour = startHour;
+  let currentMin = startMin;
+
+  const endTotalMinutes = endHour * 60 + endMin;
+
+  while (currentHour * 60 + currentMin < endTotalMinutes) {
+    const hourStr = currentHour.toString().padStart(2, '0');
+    const minStr = currentMin.toString().padStart(2, '0');
+    slots.push(`${hourStr}:${minStr}`);
+
+    currentMin += 15;
+    if (currentMin >= 60) {
+      currentMin = 0;
+      currentHour += 1;
+    }
+  }
+
+  return slots;
 };
 
-const MOCK_HOURS = [
-  { day: 'Lunes', open: '11:00', close: '23:00', isOpen: true },
-  { day: 'Martes', open: '11:00', close: '23:00', isOpen: true },
-  { day: 'Miércoles', open: '11:00', close: '23:00', isOpen: true },
-  { day: 'Jueves', open: '11:00', close: '23:00', isOpen: true },
-  { day: 'Viernes', open: '11:00', close: '01:00', isOpen: true },
-  { day: 'Sábado', open: '12:00', close: '01:00', isOpen: true },
-  { day: 'Domingo', open: '12:00', close: '22:00', isOpen: false },
-];
-
-const MOCK_PHOTOS = [
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
-  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800',
-  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800',
-];
-
-const MOCK_MENU_ITEMS = [
-  {
-    id: '1',
-    category: 'Entradas',
-    name: 'Bruschetta Clásica',
-    description: 'Pan tostado con tomate fresco, albahaca y aceite de oliva',
-    price: 4500,
-    image: 'https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?w=400',
-    available: true,
-  },
-  {
-    id: '2',
-    category: 'Entradas',
-    name: 'Tabla de Quesos',
-    description:
-      'Selección de quesos artesanales con mermeladas y frutos secos',
-    price: 7800,
-    available: true,
-  },
-  {
-    id: '3',
-    category: 'Platos Principales',
-    name: 'Pasta Carbonara',
-    description:
-      'Fettuccine con salsa cremosa de huevo, panceta y queso parmesano',
-    price: 8900,
-    image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
-    available: true,
-  },
-  {
-    id: '4',
-    category: 'Platos Principales',
-    name: 'Bife de Chorizo',
-    description: '300g de carne a la parrilla con papas rústicas y ensalada',
-    price: 12500,
-    available: false,
-  },
-  {
-    id: '5',
-    category: 'Platos Principales',
-    name: 'Risotto de Hongos',
-    description: 'Arroz cremoso con hongos portobello y trufa',
-    price: 9500,
-    available: true,
-  },
-  {
-    id: '6',
-    category: 'Bebidas',
-    name: 'Vino Tinto Reserva',
-    description: 'Copa de vino tinto chileno',
-    price: 3500,
-    available: true,
-  },
-  {
-    id: '7',
-    category: 'Postres',
-    name: 'Tiramisú',
-    description: 'Clásico postre italiano con café y mascarpone',
-    price: 4200,
-    image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400',
-    available: true,
-  },
-];
-
-const MOCK_OPINIONS: Rating[] = [
-  {
-    id: '1',
-    establishmentId: '1',
-    userId: '101',
-    userName: 'María González',
-    userAvatar: 'https://i.pravatar.cc/150?u=maria',
-    rating: 5,
-    comment:
-      'Excelente experiencia! La pasta carbonara estaba deliciosa y el servicio fue muy atento. Definitivamente volveré.',
-    date: '2024-11-20T19:30:00',
-  },
-  {
-    id: '2',
-    establishmentId: '1',
-    userId: '102',
-    userName: 'Carlos Rodríguez',
-    rating: 4,
-    comment:
-      'Muy buen restaurante, ambiente agradable y comida de calidad. Solo el tiempo de espera fue un poco largo.',
-    date: '2024-11-18T20:15:00',
-  },
-  {
-    id: '3',
-    establishmentId: '1',
-    userId: '103',
-    userName: 'Ana Martínez',
-    userAvatar: 'https://i.pravatar.cc/150?u=ana',
-    rating: 5,
-    comment:
-      'Increíble! La mejor pasta que he probado en Santiago. El tiramisú también espectacular.',
-    date: '2024-11-15T21:00:00',
-  },
-];
-
-const MOCK_TABLES = [
-  { id: 't1', name: 'Mesa 1', capacity: 2, status: 'disponible' },
-  { id: 't2', name: 'Mesa 2', capacity: 4, status: 'disponible' },
-  { id: 't3', name: 'Mesa Terraza', capacity: 6, status: 'disponible' },
-  { id: 't4', name: 'Mesa 4', capacity: 4, status: 'reservada' },
-];
-
-const TIME_SLOTS = [
-  '19:00',
-  '19:15',
-  '19:30',
-  '19:45',
-  '20:00',
-  '20:15',
-  '20:30',
-  '20:45',
-  '21:00',
-  '21:15',
-  '21:30',
-  '21:45',
-  '22:00',
-  '22:15',
-  '22:30',
-];
+// Función para restar 1 hora de un horario
+const subtractOneHour = (time: string): string => {
+  const [hour, min] = time.split(':').map(Number);
+  let newHour = hour - 1;
+  if (newHour < 0) newHour = 23;
+  return `${newHour.toString().padStart(2, '0')}:${min
+    .toString()
+    .padStart(2, '0')}`;
+};
 
 // Header Component
 function EstablishmentHeader({
@@ -324,11 +208,11 @@ function InformacionTab({ establishment, hours, photos }: any) {
               key={index}
               className="flex justify-between items-center py-2 border-b border-[#E2E8F0] last:border-0"
             >
-              <span className="text-[#334155]">{hour.day}</span>
+              <span className="text-[#334155]">{hour.dia}</span>
               <span
-                className={hour.isOpen ? 'text-[#64748B]' : 'text-[#EF4444]'}
+                className={hour.abierto ? 'text-[#64748B]' : 'text-[#EF4444]'}
               >
-                {hour.isOpen ? `${hour.open} - ${hour.close}` : 'Cerrado'}
+                {hour.abierto ? `${hour.apertura} - ${hour.cierre}` : 'Cerrado'}
               </span>
             </div>
           ))}
@@ -380,57 +264,69 @@ function InformacionTab({ establishment, hours, photos }: any) {
 }
 
 // Tab 2: Menú
-function MenuTab({ menuItems }: any) {
-  const categories = Array.from(
-    new Set(menuItems.map((item: any) => item.category))
-  ) as string[];
+function MenuTab({ categories, isLoading }: any) {
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <h2 className="text-[#334155]">Menú</h2>
+        <p className="text-[#64748B]">Cargando menú...</p>
+      </div>
+    );
+  }
+
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="space-y-8">
+        <h2 className="text-[#334155]">Menú</h2>
+        <p className="text-[#64748B]">No hay menú disponible</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <h2 className="text-[#334155]">Menú</h2>
 
-      {categories.map((category: string) => (
-        <section key={category}>
-          <h3 className="text-[#334155] mb-4">{category}</h3>
+      {categories.map((category: any) => (
+        <section key={category.id}>
+          <h3 className="text-[#334155] mb-4">{category.nombre}</h3>
           <div className="space-y-4">
-            {menuItems
-              .filter((item: any) => item.category === category)
-              .map((item: any) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-xl border border-[#E2E8F0] p-4 flex gap-4"
-                >
-                  {item.image && (
-                    <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden">
-                      <ImageWithFallback
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="text-[#334155]">{item.name}</h4>
-                      <span className="text-[#F97316]">
-                        ${item.price.toLocaleString('es-CL')}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#64748B] mb-2">
-                      {item.description}
-                    </p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        item.available
-                          ? 'bg-[#22C55E]/10 text-[#22C55E]'
-                          : 'bg-[#94A3B8]/10 text-[#94A3B8]'
-                      }`}
-                    >
-                      {item.available ? 'Disponible' : 'Agotado'}
+            {category.productos.map((item: any) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl border border-[#E2E8F0] p-4 flex gap-4"
+              >
+                {item.imagen && (
+                  <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden">
+                    <ImageWithFallback
+                      src={item.imagen}
+                      alt={item.nombre}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="text-[#334155]">{item.nombre}</h4>
+                    <span className="text-[#F97316]">
+                      ${item.precio.toLocaleString('es-CL')}
                     </span>
                   </div>
+                  <p className="text-sm text-[#64748B] mb-2">
+                    {item.descripcion}
+                  </p>
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      item.estado === 'disponible'
+                        ? 'bg-[#22C55E]/10 text-[#22C55E]'
+                        : 'bg-[#94A3B8]/10 text-[#94A3B8]'
+                    }`}
+                  >
+                    {item.estado === 'disponible' ? 'Disponible' : 'Agotado'}
+                  </span>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </section>
       ))}
@@ -453,10 +349,12 @@ function OpinionesTab({
   const opinionsPerPage = 5;
 
   const avgRating =
-    opinions.reduce((sum: number, op: any) => sum + op.rating, 0) /
-    opinions.length;
+    opinions.length > 0
+      ? opinions.reduce((sum: number, op: any) => sum + op.puntuacion, 0) /
+        opinions.length
+      : 0;
   const ratingDistribution = [5, 4, 3, 2, 1].map(
-    (stars) => opinions.filter((op: any) => op.rating === stars).length
+    (stars) => opinions.filter((op: any) => op.puntuacion === stars).length
   );
 
   const handleSubmit = () => {
@@ -624,25 +522,17 @@ function OpinionesTab({
             Sé el primero en dejar tu opinión
           </div>
         ) : (
-          displayedOpinions.map((opinion: Rating) => (
+          displayedOpinions.map((opinion: Review) => (
             <div
               key={opinion.id}
               className="bg-white rounded-xl border border-[#E2E8F0] p-4"
             >
               <div className="flex items-start gap-4">
-                {opinion.userAvatar ? (
-                  <ImageWithFallback
-                    src={opinion.userAvatar}
-                    alt={opinion.userName}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#334155]">
-                    {opinion.userName.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <div className="w-10 h-10 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#334155]">
+                  {opinion.usuario.charAt(0).toUpperCase()}
+                </div>
                 <div className="flex-1">
-                  <h4 className="text-[#334155] mb-1">{opinion.userName}</h4>
+                  <h4 className="text-[#334155] mb-1">{opinion.usuario}</h4>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -650,7 +540,7 @@ function OpinionesTab({
                           key={star}
                           size={16}
                           className={
-                            star <= opinion.rating
+                            star <= opinion.puntuacion
                               ? 'fill-[#F97316] text-[#F97316]'
                               : 'text-[#E2E8F0]'
                           }
@@ -658,10 +548,10 @@ function OpinionesTab({
                       ))}
                     </div>
                     <span className="text-sm text-[#64748B]">
-                      {getRelativeTime(opinion.date)}
+                      {getRelativeTime(opinion.fecha)}
                     </span>
                   </div>
-                  <p className="text-[#64748B]">{opinion.comment}</p>
+                  <p className="text-[#64748B]">{opinion.comentario}</p>
                 </div>
               </div>
             </div>
@@ -696,7 +586,14 @@ function OpinionesTab({
 }
 
 // Tab 4: Reservas
-function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
+function ReservasTab({
+  tables,
+  isLoggedIn,
+  onLoginClick,
+  establishmentId,
+  establishment,
+  tablesLoading,
+}: any) {
   const router = useRouter();
   const [reservationStep, setReservationStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
@@ -708,6 +605,38 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
   const [error, setError] = useState<string | null>(null);
   const [confirmationNumber] = useState(`RY${Date.now()}`);
   const [availableMesas, setAvailableMesas] = useState<any[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+
+  // Función para obtener horarios disponibles según la fecha seleccionada
+  const getTimeSlotsForDate = (dateStr: string): string[] => {
+    if (!establishment?.horarios || !dateStr) return [];
+
+    const date = new Date(dateStr + 'T00:00:00');
+    const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); // 1=Lunes, 7=Domingo
+
+    // Buscar el horario para ese día
+    const horario = establishment.horarios.find(
+      (h: any) => h.diaNumero === dayOfWeek && h.abierto
+    );
+
+    if (!horario) return [];
+
+    // Generar slots desde apertura hasta 1 hora antes del cierre
+    const closeTime = subtractOneHour(horario.cierre);
+    return generateTimeSlots(horario.apertura, closeTime);
+  };
+
+  // Actualizar slots cuando cambia la fecha
+  useEffect(() => {
+    if (selectedDate) {
+      const slots = getTimeSlotsForDate(selectedDate);
+      setAvailableTimeSlots(slots);
+      // Resetear hora seleccionada si no está disponible
+      if (selectedTime && !slots.includes(selectedTime)) {
+        setSelectedTime('');
+      }
+    }
+  }, [selectedDate, establishment]);
 
   // Mock function to check mesa availability
   const checkMesaAvailability = (date: string, time: string) => {
@@ -715,17 +644,19 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
     const bookedMesas = ['t4']; // Mock booked mesas
     return tables.map((mesa: any) => ({
       ...mesa,
-      status: bookedMesas.includes(mesa.id) ? 'reservada' : 'disponible',
+      estado: bookedMesas.includes(mesa.id)
+        ? 'reservada'
+        : mesa.estado || 'disponible',
     }));
   };
 
   // Check availability when date and time are selected
   useEffect(() => {
-    if (selectedDate && selectedTime) {
+    if (selectedDate && selectedTime && !tablesLoading) {
       const available = checkMesaAvailability(selectedDate, selectedTime);
       setAvailableMesas(available);
     }
-  }, [selectedDate, selectedTime]);
+  }, [selectedDate, selectedTime, tablesLoading]);
 
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
@@ -772,13 +703,39 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
     setError(null);
 
     try {
-      // Simulate API call: POST /api/reservas
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Llamar al endpoint de crear reserva
+      const response = await api.createReservation(
+        establishmentId,
+        selectedMesa.id,
+        selectedDate,
+        selectedTime,
+        partySize
+      );
 
-      // Success - go to step 6
-      setReservationStep(6);
-    } catch (err) {
-      setError('Error al confirmar la reserva. Por favor, intenta de nuevo.');
+      if (response.success) {
+        // Success - go to step 6
+        setReservationStep(6);
+      } else {
+        setError(response.error || 'Error al confirmar la reserva');
+      }
+    } catch (err: any) {
+      console.error('Error creating reservation:', err);
+      // Mostrar mensaje de error específico del backend
+      let errorMessage =
+        'Error al confirmar la reserva. Por favor, intenta de nuevo.';
+
+      if (err.message) {
+        if (err.message.includes('Mesa no disponible')) {
+          errorMessage =
+            'La mesa seleccionada no está disponible para este horario. Por favor, elige otra mesa u horario.';
+        } else if (err.message.includes('capacidad')) {
+          errorMessage = err.message;
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -811,7 +768,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Date Picker */}
+            {/* Date Picker Personalizado */}
             <div>
               <label className="block text-sm text-[#334155] mb-2">Fecha</label>
               <div className="relative">
@@ -821,13 +778,24 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={getTodayDate()}
                   max={getMaxDate()}
-                  className="w-full px-4 py-3 pl-12 border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 text-[#334155] bg-white cursor-pointer hover:border-[#F97316]/50 transition-colors [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full"
+                  className="w-full px-4 py-3 pl-12 border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 text-[#334155] bg-white cursor-pointer hover:border-[#F97316]/50 transition-colors"
+                  onClick={(e) => {
+                    // Asegurar que el datepicker se abra
+                    if (e.currentTarget.showPicker) {
+                      e.currentTarget.showPicker();
+                    }
+                  }}
                 />
                 <Calendar
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F97316] pointer-events-none"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F97316] pointer-events-none z-0"
                   size={20}
                 />
               </div>
+              {selectedDate && (
+                <p className="text-xs text-[#64748B] mt-1">
+                  {formatDateDisplay(selectedDate)}
+                </p>
+              )}
             </div>
 
             {/* Time Picker */}
@@ -836,15 +804,27 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
               <select
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full px-4 py-3 border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20"
+                disabled={!selectedDate || availableTimeSlots.length === 0}
+                className="w-full px-4 py-3 border border-[#E2E8F0] rounded-xl focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/20 disabled:bg-[#F1F5F9] disabled:cursor-not-allowed"
               >
-                <option value="">Selecciona una hora</option>
-                {TIME_SLOTS.map((time) => (
+                <option value="">
+                  {!selectedDate
+                    ? 'Primero selecciona una fecha'
+                    : availableTimeSlots.length === 0
+                    ? 'No hay horarios disponibles'
+                    : 'Selecciona una hora'}
+                </option>
+                {availableTimeSlots.map((time) => (
                   <option key={time} value={time}>
                     {time}
                   </option>
                 ))}
               </select>
+              {selectedDate && availableTimeSlots.length === 0 && (
+                <p className="text-xs text-[#EF4444] mt-1">
+                  El establecimiento está cerrado este día
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -888,7 +868,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {availableMesas.map((mesa) => {
-              const isAvailable = mesa.status === 'disponible';
+              const isAvailable = mesa.estado === 'disponible';
               const isSelected = selectedMesa?.id === mesa.id;
 
               return (
@@ -912,7 +892,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   style={{ borderWidth: isSelected ? '3px' : '1px' }}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-[#334155]">{mesa.name}</h4>
+                    <h4 className="text-[#334155]">{mesa.nombre}</h4>
                     <span
                       className={`text-xs px-2 py-1 rounded ${
                         isAvailable
@@ -925,7 +905,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
                   </div>
                   <div className="flex items-center gap-1 text-sm text-[#64748B]">
                     <Users size={16} />
-                    <span>Capacidad: {mesa.capacity} personas</span>
+                    <span>Capacidad: {mesa.capacidad} personas</span>
                   </div>
                 </button>
               );
@@ -961,7 +941,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
   // STEP 3: SELECT PARTY SIZE
   if (reservationStep === 3) {
-    const isStep3Valid = partySize >= 1 && partySize <= selectedMesa.capacity;
+    const isStep3Valid = partySize >= 1 && partySize <= selectedMesa.capacidad;
 
     return (
       <div className="space-y-6">
@@ -971,7 +951,8 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             <span className="text-sm text-[#64748B]">Paso 3 de 6</span>
           </div>
           <p className="text-[#64748B]">
-            Capacidad de {selectedMesa.name}: {selectedMesa.capacity} personas
+            Capacidad de {selectedMesa.nombre}: {selectedMesa.capacidad}{' '}
+            personas
           </p>
         </div>
 
@@ -990,17 +971,17 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             </div>
             <button
               onClick={() =>
-                setPartySize(Math.min(selectedMesa.capacity, partySize + 1))
+                setPartySize(Math.min(selectedMesa.capacidad, partySize + 1))
               }
               className="w-12 h-12 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] transition-colors flex items-center justify-center text-2xl"
-              disabled={partySize >= selectedMesa.capacity}
+              disabled={partySize >= selectedMesa.capacidad}
             >
               +
             </button>
           </div>
-          {partySize > selectedMesa.capacity && (
+          {partySize > selectedMesa.capacidad && (
             <p className="text-sm text-[#EF4444] text-center mt-4">
-              Máximo {selectedMesa.capacity} personas (capacidad de la mesa)
+              Máximo {selectedMesa.capacidad} personas (capacidad de la mesa)
             </p>
           )}
         </div>
@@ -1097,8 +1078,10 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Establecimiento</span>
               <div className="text-right">
-                <div className="text-[#334155]">{MOCK_ESTABLISHMENT.name}</div>
-                <TypeBadge type={MOCK_ESTABLISHMENT.type} />
+                <div className="text-[#334155]">
+                  {establishment?.name || 'Cargando...'}
+                </div>
+                {establishment && <TypeBadge type={establishment.type} />}
               </div>
             </div>
 
@@ -1117,7 +1100,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Mesa</span>
               <span className="text-[#334155]">
-                {selectedMesa.name} (Capacidad: {selectedMesa.capacity})
+                {selectedMesa.nombre} (Capacidad: {selectedMesa.capacidad})
               </span>
             </div>
 
@@ -1202,7 +1185,9 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
           <div className="space-y-4">
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Establecimiento</span>
-              <span className="text-[#334155]">{MOCK_ESTABLISHMENT.name}</span>
+              <span className="text-[#334155]">
+                {establishment?.name || 'Cargando...'}
+              </span>
             </div>
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
@@ -1219,7 +1204,7 @@ function ReservasTab({ tables, isLoggedIn, onLoginClick }: any) {
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
               <span className="text-[#64748B]">Mesa</span>
-              <span className="text-[#334155]">{selectedMesa.name}</span>
+              <span className="text-[#334155]">{selectedMesa.nombre}</span>
             </div>
 
             <div className="flex justify-between py-3 border-b border-[#E2E8F0]">
@@ -1277,7 +1262,121 @@ export default function EstablishmentDetail() {
   const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState('informacion');
   const [isFavorite, setIsFavorite] = useState(false);
-  const [currentUserOpinion] = useState(null); // Mock: null means user hasn't reviewed yet
+
+  // Estados para datos de la API
+  const [establishment, setEstablishment] =
+    useState<DetailedEstablishment | null>(null);
+  const [menuData, setMenuData] = useState<any>(null);
+  const [opinions, setOpinions] = useState<Review[]>([]);
+  const [tables, setTables] = useState<MesaInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMenu, setIsLoadingMenu] = useState(false);
+  const [isLoadingOpinions, setIsLoadingOpinions] = useState(false);
+  const [isLoadingTables, setIsLoadingTables] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUserOpinion, setCurrentUserOpinion] =
+    useState<UserOpinion | null>(null);
+  const [hasLoadedUserOpinion, setHasLoadedUserOpinion] = useState(false);
+
+  // Cargar establecimiento al montar
+  useEffect(() => {
+    const loadEstablishment = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await api.getEstablishment(id);
+        setEstablishment(data);
+        setOpinions(data.reviews || []);
+      } catch (err: any) {
+        console.error('Error loading establishment:', err);
+        setError(err.message || 'Error al cargar el establecimiento');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      loadEstablishment();
+      // Reset estados cuando cambia el local
+      setCurrentUserOpinion(null);
+      setHasLoadedUserOpinion(false);
+    }
+  }, [id]);
+
+  // Cargar menú cuando se abre la pestaña
+  useEffect(() => {
+    if (activeTab === 'menu' && !menuData && establishment) {
+      const loadMenu = async () => {
+        try {
+          setIsLoadingMenu(true);
+          const data = await api.getEstablishmentProducts(id);
+          setMenuData(data);
+        } catch (err) {
+          console.error('Error loading menu:', err);
+        } finally {
+          setIsLoadingMenu(false);
+        }
+      };
+      loadMenu();
+    }
+  }, [activeTab, id, menuData, establishment]);
+
+  // Cargar mesas cuando se abre la pestaña de reservas
+  useEffect(() => {
+    if (activeTab === 'reservas' && tables.length === 0 && establishment) {
+      const loadTables = async () => {
+        try {
+          setIsLoadingTables(true);
+          const data = await api.getEstablishmentTables(id);
+          setTables(data.mesas || []);
+        } catch (err) {
+          console.error('Error loading tables:', err);
+        } finally {
+          setIsLoadingTables(false);
+        }
+      };
+      loadTables();
+    }
+  }, [activeTab, id, tables.length, establishment]);
+
+  // Cargar opinión del usuario cuando está autenticado y en la pestaña de opiniones
+  useEffect(() => {
+    if (
+      activeTab === 'opiniones' &&
+      isLoggedIn &&
+      establishment &&
+      !hasLoadedUserOpinion
+    ) {
+      const loadUserOpinion = async () => {
+        try {
+          const data = await api.getUserOpinionForEstablishment(id);
+          setCurrentUserOpinion({
+            id: data.id,
+            userName: data.usuario,
+            rating: data.puntuacion,
+            comment: data.comentario,
+            date: data.fecha,
+          });
+        } catch (err: any) {
+          // Si devuelve 404, significa que el usuario no tiene opinión para este local (comportamiento esperado)
+          if (
+            err.status === 404 ||
+            err.message?.includes('404') ||
+            err.message?.includes('No tienes opinión')
+          ) {
+            // No hacer nada, es normal no tener opinión
+            setCurrentUserOpinion(null);
+          } else {
+            // Solo mostrar error si es un error real (no 404)
+            console.error('Error loading user opinion:', err);
+          }
+        } finally {
+          setHasLoadedUserOpinion(true);
+        }
+      };
+      loadUserOpinion();
+    }
+  }, [activeTab, isLoggedIn, id, establishment, hasLoadedUserOpinion]);
 
   const tabs: TabItem[] = [
     { id: '1', label: 'Información', value: 'informacion' },
@@ -1294,26 +1393,81 @@ export default function EstablishmentDetail() {
     setActiveTab('reservas');
   };
 
-  const handleSubmitOpinion = (opinion: any) => {
-    console.log('Submit opinion:', opinion);
-    // In real app: API call to POST /api/opiniones
+  const handleSubmitOpinion = async (opinionData: any) => {
+    try {
+      const response = await api.createOpinion(
+        id,
+        opinionData.rating,
+        opinionData.comment
+      );
+
+      // Actualizar la opinión del usuario con los datos recibidos
+      if (response.success && response.opinion) {
+        setCurrentUserOpinion({
+          id: response.opinion.id,
+          userName: response.opinion.usuario,
+          rating: response.opinion.puntuacion,
+          comment: response.opinion.comentario,
+          date: response.opinion.fecha,
+        });
+      }
+
+      // Recargar opiniones del establecimiento
+      const data = await api.getEstablishment(id);
+      setOpinions(data.reviews || []);
+    } catch (err: any) {
+      console.error('Error submitting opinion:', err);
+      // Mostrar mensaje de error específico
+      const errorMessage = err.message?.includes('Ya tienes una opinión')
+        ? 'Ya tienes una opinión para este local'
+        : err.message || 'Error al enviar la opinión';
+      alert(errorMessage);
+    }
   };
 
   const handleLoginClick = () => {
     router.push('/login');
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-[#64748B]">Cargando...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !establishment) {
+    return (
+      <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-[#EF4444] mb-4">
+            {error || 'Establecimiento no encontrado'}
+          </div>
+          <button
+            onClick={() => router.back()}
+            className="text-[#F97316] hover:underline"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
       <EstablishmentHeader
-        establishment={MOCK_ESTABLISHMENT}
+        establishment={establishment}
         onBack={handleBack}
         isFavorite={isFavorite}
         onToggleFavorite={() => setIsFavorite(!isFavorite)}
       />
 
       <QuickInfoBar
-        establishment={MOCK_ESTABLISHMENT}
+        establishment={establishment}
         onReserveClick={handleReserveClick}
         isLoggedIn={isLoggedIn}
       />
@@ -1332,15 +1486,20 @@ export default function EstablishmentDetail() {
         <div className="bg-white rounded-2xl p-6">
           {activeTab === 'informacion' && (
             <InformacionTab
-              establishment={MOCK_ESTABLISHMENT}
-              hours={MOCK_HOURS}
-              photos={MOCK_PHOTOS}
+              establishment={establishment}
+              hours={establishment.horarios || []}
+              photos={establishment.images?.todas || []}
             />
           )}
-          {activeTab === 'menu' && <MenuTab menuItems={MOCK_MENU_ITEMS} />}
+          {activeTab === 'menu' && (
+            <MenuTab
+              categories={menuData?.categorias || []}
+              isLoading={isLoadingMenu}
+            />
+          )}
           {activeTab === 'opiniones' && (
             <OpinionesTab
-              opinions={MOCK_OPINIONS}
+              opinions={opinions}
               currentUserOpinion={currentUserOpinion}
               isLoggedIn={isLoggedIn}
               onSubmitOpinion={handleSubmitOpinion}
@@ -1349,9 +1508,12 @@ export default function EstablishmentDetail() {
           )}
           {activeTab === 'reservas' && (
             <ReservasTab
-              tables={MOCK_TABLES}
+              tables={tables}
               isLoggedIn={isLoggedIn}
               onLoginClick={handleLoginClick}
+              establishmentId={id}
+              establishment={establishment}
+              tablesLoading={isLoadingTables}
             />
           )}
         </div>
